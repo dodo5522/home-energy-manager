@@ -1,4 +1,4 @@
-mod error;
-pub use error::*;
+mod errors;
+pub use errors::*;
 mod repo;
-pub use repo::GenerationRepository;
+pub use repo::*;

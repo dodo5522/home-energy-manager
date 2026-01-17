@@ -1,7 +1,6 @@
-use dotenvy::var;
-
 use layer_infra_db::get_connection;
 use layer_presentation::get_router;
+use std::env::var;
 
 #[tokio::main]
 async fn main() {
@@ -13,6 +12,8 @@ async fn main() {
 
 /// Run the application server.
 async fn run() -> anyhow::Result<()> {
+    dotenvy::dotenv()?;
+
     let bind_addr = var("BIND_ADDR")?;
     let bind_port = var("BIND_PORT")?;
     let user = var("DB_OPERATOR_NAME")?;

@@ -1,6 +1,7 @@
-use layer_infra_db::get_connection;
-use layer_presentation::get_router;
+use poem::{EndpointExt, Server, listener::TcpListener, middleware::Tracing};
 use std::env::var;
+
+use layer_presentation::{di, routers};
 
 #[tokio::main]
 async fn main() {
@@ -16,19 +17,14 @@ async fn run() -> anyhow::Result<()> {
 
     let bind_addr = var("BIND_ADDR")?;
     let bind_port = var("BIND_PORT")?;
-    let user = var("DB_OPERATOR_NAME")?;
-    let password = var("DB_OPERATOR_PASSWORD")?;
 
     tracing_subscriber::fmt::init();
 
-    // connect db
-    let db = get_connection(&user, &password).await?;
-    println!("{:?}", db);
-
     // run our app with hyper, listening globally on the port
-    let router = get_router();
-    let listener = tokio::net::TcpListener::bind(format!("{bind_addr}:{bind_port}")).await?;
-    axum::serve(listener, router).await?;
+    let router = routers::get();
+    Server::new(TcpListener::bind(format!("{bind_addr}:{bind_port}")))
+        .run(router.with(Tracing))
+        .await?;
 
     Ok(())
 }

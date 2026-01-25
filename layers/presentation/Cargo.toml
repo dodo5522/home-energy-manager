@@ -4,16 +4,17 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-tokio.workspace = true
-axum.workspace = true
 anyhow.workspace = true
+chrono.workspace = true
 dotenvy.workspace = true
+poem.workspace = true
+poem-openapi.workspace = true
+sea-orm.workspace = true
 serde.workspace = true
-poem = "3.1.12"
+tokio.workspace = true
+
+[dependencies.layer-domain]
+path = "../domain"
 
 [dependencies.layer-infra-db]
 path = "../infra-db"
-
-[dependencies.poem-openapi]
-version = "5.1.16"
-features = ["swagger-ui"]

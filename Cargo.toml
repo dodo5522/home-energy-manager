@@ -8,7 +8,7 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = "1.0"
-async-compat = "0.2.5"
+async-trait = "0.1.89"
 axum = "0.8.6"
 chrono = "0.4.42"
 chrono-tz = "0.10.4"

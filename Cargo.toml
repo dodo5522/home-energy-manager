@@ -33,6 +33,7 @@ tokio.workspace = true
 anyhow.workspace = true
 dotenvy.workspace = true
 poem.workspace = true
+poem-openapi.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 

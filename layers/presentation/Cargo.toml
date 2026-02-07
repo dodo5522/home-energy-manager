@@ -5,13 +5,16 @@ edition.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+axum.workspace = true
 chrono.workspace = true
 dotenvy.workspace = true
-poem.workspace = true
-poem-openapi.workspace = true
 sea-orm.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 tokio.workspace = true
+utoipa.workspace = true
+utoipa-swagger-ui.workspace = true
+utoipa-redoc.workspace = true
 
 [dependencies.layer-domain]
 path = "../domain"

@@ -1,10 +1,10 @@
-use layer_domain::{
-    entity, repository, repository::GenerationRepositoryError as Error, value_object,
-};
-use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
-
 use crate::models::prelude::{Groups, Histories, Labels, Sources, Units};
 use crate::models::{groups, histories, labels, sources, units};
+use layer_domain::{entity, value_object};
+use layer_use_case::interface::repository::{
+    GenerationRepositoryError as Error, IGenerationRepository,
+};
+use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
 pub struct GenerationRepository {
     db: DatabaseConnection,
@@ -17,7 +17,7 @@ impl GenerationRepository {
 }
 
 #[async_trait::async_trait]
-impl repository::IGenerationRepository for GenerationRepository {
+impl IGenerationRepository for GenerationRepository {
     async fn add(&self, new: &entity::EnergyRecord) -> Result<entity::EnergyRecord, Error> {
         let unit_value = ActiveValue::Set(new.unit.to_owned().into());
         let group_value = ActiveValue::Set(new.sub_system.to_owned().into());

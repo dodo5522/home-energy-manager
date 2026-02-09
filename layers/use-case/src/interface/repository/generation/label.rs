@@ -3,7 +3,7 @@ use layer_domain::entity::LabelRecord;
 
 /// ラベル管理リポジトリインターフェース
 #[async_trait::async_trait]
-pub trait ILabelRepository {
+pub trait LabelRepositoryTrait {
     /// ラベルを追加する
     ///
     /// # Arguments
@@ -30,7 +30,7 @@ pub trait ILabelRepository {
     /// * `Result<bool, GenerationRepositoryError>` - 成功時は存在するかどうかを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn has(&self, label: &String) -> Result<bool, GenerationRepositoryError>;
+    async fn has(&self, label: &str) -> Result<bool, GenerationRepositoryError>;
 
     /// ラベルを削除する
     ///
@@ -40,5 +40,5 @@ pub trait ILabelRepository {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, label: &String) -> Result<(), GenerationRepositoryError>;
+    async fn delete(&self, label: &str) -> Result<(), GenerationRepositoryError>;
 }

@@ -3,7 +3,7 @@ use layer_domain::{entity::UnitRecord, value_object::Unit};
 
 /// 単位を管理するためのリポジトリインターフェース
 #[async_trait::async_trait]
-pub trait IUnitRepository {
+pub trait UnitRepositoryTrait {
     /// 単位を追加する
     ///
     /// # Arguments

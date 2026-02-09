@@ -12,7 +12,7 @@ pub trait HistoryRepositoryTrait {
     /// * `Result<EnergyRecord, GenerationRepositoryError>` - 成功時は登録後のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &HistoryRecord) -> Result<HistoryRecord, GenerationRepositoryError>;
+    async fn add(&self, new: &HistoryRecord) -> Result<HistoryId, GenerationRepositoryError>;
 
     /// 発電状況を取得する
     ///

@@ -3,7 +3,7 @@ use layer_domain::{entity::SourceRecord, value_object::EnergySource};
 
 /// 発電元を記録するためのリポジトリインターフェース
 #[async_trait::async_trait]
-pub trait ISourceRepository {
+pub trait SourceRepositoryTrait {
     /// 発電元を追加する
     ///
     /// # Arguments

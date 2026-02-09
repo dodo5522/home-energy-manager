@@ -3,7 +3,7 @@ use layer_domain::{entity::GroupRecord, value_object::SubSystem};
 
 /// グループ（サブシステム）を記録するためのリポジトリインターフェース
 #[async_trait::async_trait]
-pub trait IGroupRepository {
+pub trait GroupRepositoryTrait {
     /// グループ（サブシステム）を追加する
     ///
     /// # Arguments

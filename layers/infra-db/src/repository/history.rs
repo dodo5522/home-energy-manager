@@ -31,9 +31,10 @@ impl HistoryRepositoryTrait for GenerationRepository {
         let history = ActiveModel {
             unit: ActiveValue::Set(new.unit.to_owned().into()),
             group: ActiveValue::Set(new.sub_system.to_owned().into()),
-            label: ActiveValue::Set(new.energy_source.to_owned().into()),
-            source: ActiveValue::Set(new.label.to_owned()),
+            label: ActiveValue::Set(new.label.to_owned()),
+            source: ActiveValue::Set(new.energy_source.to_owned().into()),
             value: ActiveValue::Set(new.value.to_owned()),
+            monitored_at: ActiveValue::Set(new.monitored_at.into()),
             ..Default::default()
         };
 
@@ -57,9 +58,9 @@ impl HistoryRepositoryTrait for GenerationRepository {
             value: history.value,
             unit: history.unit.try_into().map_err(Self::map_err_find)?,
             sub_system: history.group.try_into().map_err(Self::map_err_find)?,
-            energy_source: history.label.try_into().map_err(Self::map_err_find)?,
-            label: history.source,
-            monitored_at: history.created_at.into(),
+            energy_source: history.source.try_into().map_err(Self::map_err_find)?,
+            label: history.label,
+            monitored_at: history.monitored_at.into(),
         })
     }
 

@@ -1,15 +1,13 @@
 use crate::di::db::get_connection;
-use layer_domain::{entity, repository::IGenerationRepository};
-use layer_infra_db::repository::generation::GenerationRepository;
-
-use axum::http::StatusCode;
-use axum::{Json, extract::Path};
-
 use crate::dto::{
     errors::ErrorResponse,
     generation::history::get::Response as GetResponse,
     generation::history::post::{Request as PostRequest, Response as PostResponse},
 };
+use axum::{Json, extract::Path, http::StatusCode};
+use layer_infra_db::repository::history::GenerationRepository;
+use layer_infra_db::unit_of_work::UnitOfWorkFactory;
+use layer_use_case::create_history::{CreateHistoryInput, CreateHistoryUseCase};
 
 #[utoipa::path(
     post,
@@ -23,8 +21,7 @@ use crate::dto::{
 pub async fn post_history(
     Json(body): Json<PostRequest>,
 ) -> Result<Json<PostResponse>, (StatusCode, Json<ErrorResponse>)> {
-    let energy = entity::EnergyRecord {
-        id: None,
+    let energy = CreateHistoryInput {
         unit: body.unit.try_into().map_err(map_bad_request)?,
         sub_system: body.sub_system.try_into().map_err(map_bad_request)?,
         energy_source: body.energy_source.try_into().map_err(map_bad_request)?,
@@ -35,18 +32,18 @@ pub async fn post_history(
     println!("Inserting test record: {:?}", energy);
 
     let db = get_connection().await.map_err(map_internal_server_error)?;
-    let repo = GenerationRepository::new(db)
-        .await
-        .map_err(map_internal_server_error)?;
+    let use_case = CreateHistoryUseCase::new(
+        GenerationRepository::new(db.clone()),
+        UnitOfWorkFactory::new(db.clone()),
+    );
 
-    if let Ok(res) = repo.add(&energy).await {
-        let id = res.id.unwrap().0; // TODO: Handle unwrap safely
-        Ok(Json(PostResponse { id }))
+    if let Ok(history_id) = use_case.create(energy).await {
+        Ok(Json(PostResponse { id: history_id }))
     } else {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(ErrorResponse {
-                message: "".to_string(),
+                message: "Create history failed".to_string(),
             }),
         ))
     }

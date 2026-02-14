@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use layer_domain::entity::HistoryRecord;
-use layer_domain::value_object::{SubSystem, Unit};
+use layer_domain::entity::HistoryEntity;
+use layer_domain::value_object::Unit;
 
 #[derive(Debug, Clone)]
 pub struct CreateHistoryInput {
@@ -9,15 +9,15 @@ pub struct CreateHistoryInput {
     /// 物理量の単位
     pub unit: Unit,
     /// 発電サブシステムの種類
-    pub sub_system: SubSystem,
+    pub sub_system: String,
     /// 発電状況のラベル
     pub label: String,
     /// 発電状況の計測日時
     pub monitored_at: DateTime<Utc>,
 }
 
-impl From<HistoryRecord> for CreateHistoryInput {
-    fn from(record: HistoryRecord) -> Self {
+impl From<HistoryEntity> for CreateHistoryInput {
+    fn from(record: HistoryEntity) -> Self {
         Self {
             value: record.value,
             unit: record.unit,
@@ -28,10 +28,9 @@ impl From<HistoryRecord> for CreateHistoryInput {
     }
 }
 
-impl From<CreateHistoryInput> for HistoryRecord {
+impl From<CreateHistoryInput> for HistoryEntity {
     fn from(input: CreateHistoryInput) -> Self {
-        HistoryRecord {
-            id: None,
+        HistoryEntity {
             value: input.value,
             unit: input.unit,
             sub_system: input.sub_system,

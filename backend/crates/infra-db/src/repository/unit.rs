@@ -12,22 +12,22 @@ impl UnitRepository {
         Ok(Self { db })
     }
 
-    pub fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {
+    fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("instantiate unit failed: {e}"))
     }
 
-    pub fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
+    fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("insert unit error: {e}"))
     }
 
-    pub fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
+    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("find unit failed: {e}"))
     }
 }
 
 #[async_trait::async_trait]
 impl UnitRepositoryTrait for UnitRepository {
-    async fn add(&self, new: &entity::UnitRecord) -> Result<value_object::Unit, Error> {
+    async fn add(&self, new: &entity::UnitEntity) -> Result<value_object::Unit, Error> {
         let unit = ActiveModel {
             unit: ActiveValue::Set(new.unit.to_owned().into()),
             remark: ActiveValue::Set(new.remark.to_owned()),
@@ -42,7 +42,7 @@ impl UnitRepositoryTrait for UnitRepository {
         Ok(value_object::Unit::new(res.last_insert_id).map_err(Self::map_err_instance)?)
     }
 
-    async fn get(&self) -> Result<Vec<entity::UnitRecord>, Error> {
+    async fn get(&self) -> Result<Vec<entity::UnitEntity>, Error> {
         let units = Units::find()
             .all(&self.db)
             .await
@@ -51,7 +51,7 @@ impl UnitRepositoryTrait for UnitRepository {
         let records = units
             .into_iter()
             .map(|u| {
-                Ok(entity::UnitRecord {
+                Ok(entity::UnitEntity {
                     unit: u.unit.try_into().map_err(Self::map_err_find)?,
                     remark: u.remark,
                 })

@@ -1,5 +1,5 @@
 use super::errors::GenerationRepositoryError;
-use layer_domain::entity::LabelRecord;
+use layer_domain::entity::LabelEntity;
 
 /// ラベル管理リポジトリインターフェース
 #[async_trait::async_trait]
@@ -12,7 +12,7 @@ pub trait LabelRepositoryTrait {
     /// * `Result<SubSystem, GenerationRepositoryError>` - 成功時は登録後のラベルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &LabelRecord) -> Result<String, GenerationRepositoryError>;
+    async fn add(&self, new: &LabelEntity) -> Result<String, GenerationRepositoryError>;
 
     /// ラベルを取得する
     ///
@@ -20,7 +20,7 @@ pub trait LabelRepositoryTrait {
     /// * `Result<Vec<LabelRecord>, GenerationRepositoryError>` - 成功時はラベルのエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<LabelRecord>, GenerationRepositoryError>;
+    async fn get(&self) -> Result<Vec<LabelEntity>, GenerationRepositoryError>;
 
     /// ラベルが存在するか確認する
     ///

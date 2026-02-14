@@ -1,9 +1,9 @@
 use super::errors::GenerationRepositoryError;
-use layer_domain::{entity::GroupRecord, value_object::SubSystem};
+use layer_domain::entity::SubSystemEntity;
 
 /// グループ（サブシステム）を記録するためのリポジトリインターフェース
 #[async_trait::async_trait]
-pub trait GroupRepositoryTrait {
+pub trait SubSystemRepositoryTrait {
     /// グループ（サブシステム）を追加する
     ///
     /// # Arguments
@@ -12,7 +12,7 @@ pub trait GroupRepositoryTrait {
     /// * `Result<SubSystem, GenerationRepositoryError>` - 成功時は登録後のグループ（サブシステム）を返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &GroupRecord) -> Result<SubSystem, GenerationRepositoryError>;
+    async fn add(&self, new: &SubSystemEntity) -> Result<String, GenerationRepositoryError>;
 
     /// グループ（サブシステム）を取得する
     ///
@@ -20,7 +20,7 @@ pub trait GroupRepositoryTrait {
     /// * `Result<Vec<GroupRecord>, GenerationRepositoryError>` - 成功時はグループ（サブシステム）のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<GroupRecord>, GenerationRepositoryError>;
+    async fn get(&self) -> Result<Vec<SubSystemEntity>, GenerationRepositoryError>;
 
     /// グループ（サブシステム）が存在するか確認する
     ///
@@ -30,7 +30,7 @@ pub trait GroupRepositoryTrait {
     /// * `Result<bool, GenerationRepositoryError>` - 成功時は存在するかどうかを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn has(&self, system: &SubSystem) -> Result<bool, GenerationRepositoryError>;
+    async fn has(&self, system: &String) -> Result<bool, GenerationRepositoryError>;
 
     /// グループ（サブシステム）を削除する
     ///
@@ -40,5 +40,5 @@ pub trait GroupRepositoryTrait {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, system: &SubSystem) -> Result<(), GenerationRepositoryError>;
+    async fn delete(&self, system: &String) -> Result<(), GenerationRepositoryError>;
 }

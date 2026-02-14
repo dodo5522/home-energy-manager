@@ -23,7 +23,7 @@ pub async fn post_history(
 ) -> Result<(StatusCode, Json<PostResponse>), (StatusCode, Json<ErrorResponse>)> {
     let energy = CreateHistoryInput {
         unit: body.unit.try_into().map_err(map_bad_request)?,
-        sub_system: body.sub_system.try_into().map_err(map_bad_request)?,
+        sub_system: body.sub_system,
         label: body.label,
         value: body.value,
         monitored_at: body.monitored_at,

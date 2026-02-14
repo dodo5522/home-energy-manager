@@ -1,5 +1,5 @@
 use super::errors::GenerationRepositoryError;
-use layer_domain::{entity::UnitRecord, value_object::Unit};
+use layer_domain::{entity::UnitEntity, value_object::Unit};
 
 /// 単位を管理するためのリポジトリインターフェース
 #[async_trait::async_trait]
@@ -12,7 +12,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Unit, GenerationRepositoryError>` - 成功時は登録後の単位を返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &UnitRecord) -> Result<Unit, GenerationRepositoryError>;
+    async fn add(&self, new: &UnitEntity) -> Result<Unit, GenerationRepositoryError>;
 
     /// 単位を取得する
     ///
@@ -20,7 +20,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Vec<UnitRecord>, GenerationRepositoryError>` - 成功時は単位のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<UnitRecord>, GenerationRepositoryError>;
+    async fn get(&self) -> Result<Vec<UnitEntity>, GenerationRepositoryError>;
 
     /// 単位が存在するか確認する
     ///

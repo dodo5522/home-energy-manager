@@ -1,35 +1,31 @@
 use crate::models::{groups::ActiveModel, prelude::Groups};
-use layer_domain::{entity, value_object};
-use layer_use_case::interface::{GenerationRepositoryError as Error, GroupRepositoryTrait};
+use layer_domain::entity;
+use layer_use_case::interface::{GenerationRepositoryError as Error, SubSystemRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
-pub struct GroupRepository {
+pub struct SubSystemRepository {
     db: DatabaseConnection,
 }
 
-impl GroupRepository {
+impl SubSystemRepository {
     pub async fn new(db: DatabaseConnection) -> Result<Self, Error> {
         Ok(Self { db })
-    }
-
-    fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("instantiate group failed: {e}"))
     }
 
     fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("insert group failed: {e}"))
     }
 
-    pub fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
+    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("find group failed: {e}"))
     }
 }
 
 #[async_trait::async_trait]
-impl GroupRepositoryTrait for GroupRepository {
-    async fn add(&self, new: &entity::GroupRecord) -> Result<value_object::SubSystem, Error> {
+impl SubSystemRepositoryTrait for SubSystemRepository {
+    async fn add(&self, new: &entity::SubSystemEntity) -> Result<String, Error> {
         let group = ActiveModel {
-            group: ActiveValue::Set(new.sub_system.to_owned().into()),
+            group: ActiveValue::Set(new.sub_system.to_owned()),
             remark: ActiveValue::Set(new.remark.to_owned()),
             ..Default::default()
         };
@@ -39,10 +35,10 @@ impl GroupRepositoryTrait for GroupRepository {
             .await
             .map_err(Self::map_err_insert)?;
 
-        Ok(value_object::SubSystem::new(res.last_insert_id).map_err(Self::map_err_instance)?)
+        Ok(res.last_insert_id)
     }
 
-    async fn get(&self) -> Result<Vec<entity::GroupRecord>, Error> {
+    async fn get(&self) -> Result<Vec<entity::SubSystemEntity>, Error> {
         let groups = Groups::find()
             .all(&self.db)
             .await
@@ -51,8 +47,8 @@ impl GroupRepositoryTrait for GroupRepository {
         let records = groups
             .into_iter()
             .map(|g| {
-                Ok(entity::GroupRecord {
-                    sub_system: g.group.try_into().map_err(Self::map_err_find)?,
+                Ok(entity::SubSystemEntity {
+                    sub_system: g.group,
                     remark: g.remark,
                 })
             })
@@ -61,11 +57,11 @@ impl GroupRepositoryTrait for GroupRepository {
         Ok(records)
     }
 
-    async fn has(&self, label: &value_object::SubSystem) -> Result<bool, Error> {
+    async fn has(&self, label: &String) -> Result<bool, Error> {
         todo!()
     }
 
-    async fn delete(&self, label: &value_object::SubSystem) -> Result<(), Error> {
+    async fn delete(&self, label: &String) -> Result<(), Error> {
         todo!()
     }
 }

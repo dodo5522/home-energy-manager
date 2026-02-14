@@ -12,22 +12,18 @@ impl LabelRepository {
         Ok(Self { db })
     }
 
-    pub fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("instantiate history failed: {e}"))
-    }
-
-    pub fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
+    fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("insert history error: {e}"))
     }
 
-    pub fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
+    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
         Error::Infra(format!("find history failed: {e}"))
     }
 }
 
 #[async_trait::async_trait]
 impl LabelRepositoryTrait for LabelRepository {
-    async fn add(&self, new: &entity::LabelRecord) -> Result<String, Error> {
+    async fn add(&self, new: &entity::LabelEntity) -> Result<String, Error> {
         let label = ActiveModel {
             label: ActiveValue::Set(new.label.to_owned()),
             remark: ActiveValue::Set(new.remark.to_owned()),
@@ -42,7 +38,7 @@ impl LabelRepositoryTrait for LabelRepository {
         Ok(res.last_insert_id)
     }
 
-    async fn get(&self) -> Result<Vec<entity::LabelRecord>, Error> {
+    async fn get(&self) -> Result<Vec<entity::LabelEntity>, Error> {
         let labels = Labels::find()
             .all(&self.db)
             .await
@@ -51,7 +47,7 @@ impl LabelRepositoryTrait for LabelRepository {
         let records = labels
             .into_iter()
             .map(|l| {
-                Ok(entity::LabelRecord {
+                Ok(entity::LabelEntity {
                     label: l.label,
                     remark: l.remark,
                 })

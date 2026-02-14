@@ -11,8 +11,6 @@ async fn main() {
 
 /// Run the application server.
 async fn run() -> anyhow::Result<()> {
-    dotenvy::dotenv()?;
-
     let bind_addr = var("BIND_ADDR")?;
     let bind_port = var("BIND_PORT")?;
     let address = format!("{bind_addr}:{bind_port}");

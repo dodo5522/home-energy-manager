@@ -7,6 +7,6 @@ use axum::http::StatusCode;
         (status = 204, description = "the health check passed"),
     ),
 )]
-pub async fn check_health() -> Result<(), (StatusCode, ())> {
-    Ok(())
+pub async fn check_health() -> StatusCode {
+    StatusCode::NO_CONTENT
 }

@@ -7,5 +7,5 @@ cargo-watch \
   --delay 1 \
   --watch Cargo.toml \
   --watch src \
-  --watch layers \
+  --watch crates \
   -x 'run'

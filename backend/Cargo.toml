@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "layers/*"]
+members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
@@ -25,12 +25,12 @@ utoipa-redoc = { version = "6.0", features = ["axum"] }
 uuid = { version = "1.18", features = ["serde", "v4"] }
 
 [package]
-name = "study-rust-be"
+name = "home-energy-manager"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-layer-presentation = { path = "layers/presentation" }
+layer-presentation = { path = "./crates/presentation" }
 anyhow.workspace = true
 axum.workspace = true
 dotenvy.workspace = true

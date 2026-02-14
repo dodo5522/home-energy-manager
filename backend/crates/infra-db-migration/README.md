@@ -2,7 +2,7 @@
 
 - Generate a new migration file
     ```sh
-    sea-orm-cli migrate -d ./layers/infra-db-migration generate 'create junction table for sites and devices'
+    sea-orm-cli migrate -d ./crates/infra-db-migration generate 'create junction table for sites and devices'
     ```
 - Apply all pending migrations
     ```sh

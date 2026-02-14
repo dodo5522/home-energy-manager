@@ -1,4 +1,4 @@
 .idea
 .serena
 target
-Cargo.lock
+backend/Cargo.lock

@@ -1,9 +1,9 @@
 repos:
--   repo: local
+  - repo: local
     hooks:
-    -   id: cargo-fmt
+      - id: cargo-fmt
         name: cargo fmt
-        entry: cargo fmt --all
+        entry: cd backend && cargo fmt --all
         language: system
-        types: [rust]
+        types: [ rust ]
         pass_filenames: false

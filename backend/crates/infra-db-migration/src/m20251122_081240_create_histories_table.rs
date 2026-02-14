@@ -1,4 +1,4 @@
-use crate::iden::generation::{Groups, Histories, Labels, Sources, Units};
+use crate::iden::generation::{Groups, Histories, Labels, Units};
 use crate::sea_orm::{DbBackend, Statement};
 use sea_orm_migration::{prelude::*, schema::*};
 
@@ -15,7 +15,6 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(big_integer(Histories::Id).primary_key().auto_increment())
                     .col(string(Histories::Group).not_null())
-                    .col(string(Histories::Source).not_null())
                     .col(string(Histories::Label).not_null())
                     .col(string(Histories::Unit).not_null())
                     .col(float(Histories::Value).not_null())
@@ -40,13 +39,6 @@ impl MigrationTrait for Migration {
                             .name("fk-histories-group")
                             .from((Histories::Schema, Histories::Table), Histories::Group)
                             .to((Groups::Schema, Groups::Table), Groups::Group)
-                            .on_delete(ForeignKeyAction::Restrict),
-                    )
-                    .foreign_key(
-                        ForeignKey::create()
-                            .name("fk-histories-source")
-                            .from((Histories::Schema, Histories::Table), Histories::Source)
-                            .to((Sources::Schema, Sources::Table), Sources::Source)
                             .on_delete(ForeignKeyAction::Restrict),
                     )
                     .foreign_key(
@@ -80,17 +72,6 @@ impl MigrationTrait for Migration {
                     "COMMENT ON COLUMN {}.{} IS 'グループ';",
                     table,
                     Histories::Group.to_string()
-                ),
-            ))
-            .await?;
-        manager
-            .get_connection()
-            .execute(Statement::from_string(
-                DbBackend::Postgres,
-                format!(
-                    "COMMENT ON COLUMN {}.{} IS '発電元ソース';",
-                    table,
-                    Histories::Source.to_string()
                 ),
             ))
             .await?;

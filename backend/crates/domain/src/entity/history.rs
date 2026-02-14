@@ -1,4 +1,4 @@
-use crate::value_object::{EnergySource, SubSystem, Unit};
+use crate::value_object::{SubSystem, Unit};
 use chrono::{DateTime, Utc};
 
 /// 発電状況の識別子
@@ -16,8 +16,6 @@ pub struct HistoryRecord {
     pub unit: Unit,
     /// 発電サブシステムの種類
     pub sub_system: SubSystem,
-    /// エネルギー源の種類
-    pub energy_source: EnergySource,
     /// 発電状況のラベル
     pub label: String,
     /// 発電状況の計測日時

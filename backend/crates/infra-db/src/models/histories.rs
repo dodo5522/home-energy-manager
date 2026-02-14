@@ -38,14 +38,6 @@ pub enum Relation {
     )]
     Labels,
     #[sea_orm(
-        belongs_to = "super::sources::Entity",
-        from = "Column::Source",
-        to = "super::sources::Column::Source",
-        on_update = "NoAction",
-        on_delete = "Restrict"
-    )]
-    Sources,
-    #[sea_orm(
         belongs_to = "super::units::Entity",
         from = "Column::Unit",
         to = "super::units::Column::Unit",
@@ -64,12 +56,6 @@ impl Related<super::groups::Entity> for Entity {
 impl Related<super::labels::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Labels.def()
-    }
-}
-
-impl Related<super::sources::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Sources.def()
     }
 }
 

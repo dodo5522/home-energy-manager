@@ -11,7 +11,7 @@ use layer_use_case::create_history::{CreateHistoryInput, CreateHistoryUseCase};
 
 #[utoipa::path(
     post,
-    path = "/history",
+    path = "/generation/history",
     request_body = PostRequest,
     responses(
         (status = 201, description = "OK", body = PostResponse),
@@ -24,7 +24,6 @@ pub async fn post_history(
     let energy = CreateHistoryInput {
         unit: body.unit.try_into().map_err(map_bad_request)?,
         sub_system: body.sub_system.try_into().map_err(map_bad_request)?,
-        energy_source: body.energy_source.try_into().map_err(map_bad_request)?,
         label: body.label,
         value: body.value,
         monitored_at: body.monitored_at,
@@ -51,7 +50,7 @@ pub async fn post_history(
 
 #[utoipa::path(
     get,
-    path = "/history/{id}",
+    path = "/generation/history/{id}",
     params(("id" = i64, Path, description = "User id")),
     responses(
         (status = 200, description = "OK", body = GetResponse),

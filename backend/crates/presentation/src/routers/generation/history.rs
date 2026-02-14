@@ -20,7 +20,7 @@ use layer_use_case::create_history::{CreateHistoryInput, CreateHistoryUseCase};
 )]
 pub async fn post_history(
     Json(body): Json<PostRequest>,
-) -> Result<Json<PostResponse>, (StatusCode, Json<ErrorResponse>)> {
+) -> Result<(StatusCode, Json<PostResponse>), (StatusCode, Json<ErrorResponse>)> {
     let energy = CreateHistoryInput {
         unit: body.unit.try_into().map_err(map_bad_request)?,
         sub_system: body.sub_system.try_into().map_err(map_bad_request)?,
@@ -38,7 +38,7 @@ pub async fn post_history(
     );
 
     if let Ok(history_id) = use_case.create(energy).await {
-        Ok(Json(PostResponse { id: history_id }))
+        Ok((StatusCode::CREATED, Json(PostResponse { id: history_id })))
     } else {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -61,17 +61,20 @@ pub async fn post_history(
 )]
 pub async fn get_history(
     Path(id): Path<i64>,
-) -> Result<Json<GetResponse>, (StatusCode, Json<ErrorResponse>)> {
+) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
     // TODO: Implement actual fetching logic
-    Ok(Json(GetResponse {
-        id,
-        value: 123.4,
-        unit: "kWh".into(),
-        sub_system: "Battery".into(),
-        energy_source: "Solar".into(),
-        label: "Sample Label".into(),
-        monitored_at: chrono::Utc::now(),
-    }))
+    Ok((
+        StatusCode::OK,
+        Json(GetResponse {
+            id,
+            value: 123.4,
+            unit: "kWh".into(),
+            sub_system: "Battery".into(),
+            energy_source: "Solar".into(),
+            label: "Sample Label".into(),
+            monitored_at: chrono::Utc::now(),
+        }),
+    ))
 }
 
 fn map_bad_request<E: std::fmt::Display>(e: E) -> (StatusCode, Json<ErrorResponse>) {

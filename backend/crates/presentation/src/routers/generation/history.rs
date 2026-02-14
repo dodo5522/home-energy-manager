@@ -11,6 +11,8 @@ use layer_use_case::create_history::{CreateHistoryInput, CreateHistoryUseCase};
 
 #[utoipa::path(
     post,
+    tag = "Generation",
+    description = "Create a new history record",
     path = "/generation/history",
     request_body = PostRequest,
     responses(
@@ -50,6 +52,8 @@ pub async fn post_history(
 
 #[utoipa::path(
     get,
+    tag = "Generation",
+    description = "Get a history record by id",
     path = "/generation/history/{id}",
     params(("id" = i64, Path, description = "User id")),
     responses(

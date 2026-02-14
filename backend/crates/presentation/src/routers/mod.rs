@@ -16,12 +16,9 @@ pub fn route() -> Router {
 }
 
 #[derive(OpenApi)]
-#[openapi(
-    paths(
-        health::checker::check_health,
-        generation::history::get_history,
-        generation::history::post_history,
-    ),
-    tags((name="Generation")),
-)]
+#[openapi(paths(
+    health::checker::check_health,
+    generation::history::get_history,
+    generation::history::post_history,
+))]
 pub(crate) struct ApiDoc {}

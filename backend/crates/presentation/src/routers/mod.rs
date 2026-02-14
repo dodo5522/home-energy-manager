@@ -20,5 +20,11 @@ pub fn route() -> Router {
     health::checker::check_health,
     generation::history::get_history,
     generation::history::post_history,
+    generation::label::post_label,
+    generation::label::get_labels,
+    generation::sub_system::post_sub_system,
+    generation::sub_system::get_sub_systems,
+    generation::unit::post_unit,
+    generation::unit::get_units,
 ))]
 pub(crate) struct ApiDoc {}

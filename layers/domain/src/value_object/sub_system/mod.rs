@@ -1,11 +1,11 @@
 mod error;
 mod value;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SubSystemError {
     NotSupported(String),
 }
 
 /// 発電システム内のBattery, Arrayなどのサブシステムを表す値オブジェクト
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SubSystem(String);

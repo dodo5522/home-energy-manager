@@ -1,11 +1,11 @@
 mod error;
 mod value;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EnergySourceError {
     NotSupported(String),
 }
 
 /// 発電システム内の発電元を表す値オブジェクト
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EnergySource(String);

@@ -1,2 +1,3 @@
-mod routers;
-pub use routers::get_router;
+pub mod di;
+pub mod dto;
+pub mod routers;

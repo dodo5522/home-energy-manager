@@ -1,7 +1,6 @@
 use axum::{Router, routing::get};
+pub(crate) mod checker;
 
-mod getter;
-
-pub fn get_router() -> Router {
-    Router::new().route("/", get(getter::check))
+pub fn route() -> Router {
+    Router::new().route("/", get(checker::check_health))
 }

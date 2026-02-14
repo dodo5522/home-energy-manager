@@ -1,7 +1,5 @@
-use dotenvy::var;
-
-use layer_infra_db::get_connection;
-use layer_presentation::get_router;
+use layer_presentation::routers;
+use std::env::var;
 
 #[tokio::main]
 async fn main() {
@@ -13,21 +11,17 @@ async fn main() {
 
 /// Run the application server.
 async fn run() -> anyhow::Result<()> {
+    dotenvy::dotenv()?;
+
     let bind_addr = var("BIND_ADDR")?;
     let bind_port = var("BIND_PORT")?;
-    let user = var("DB_OPERATOR_NAME")?;
-    let password = var("DB_OPERATOR_PASSWORD")?;
+    let address = format!("{bind_addr}:{bind_port}");
 
     tracing_subscriber::fmt::init();
 
-    // connect db
-    let db = get_connection(&user, &password).await?;
-    println!("{:?}", db);
-
     // run our app with hyper, listening globally on the port
-    let router = get_router();
-    let listener = tokio::net::TcpListener::bind(format!("{bind_addr}:{bind_port}")).await?;
-    axum::serve(listener, router).await?;
+    let listener = tokio::net::TcpListener::bind(address).await?;
+    axum::serve(listener, routers::route()).await?;
 
     Ok(())
 }

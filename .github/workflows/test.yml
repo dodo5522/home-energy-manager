@@ -1,4 +1,4 @@
-name: clippy
+name: test
 
 on:
   pull_request:
@@ -14,4 +14,11 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: cargo clippy
-        run: cargo clippy --all-targets --all-features -- -W warnings
+        run: cd backend && cargo clippy --all-targets --all-features -- -W warnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run all features test
+        run: cd backend && cargo test --all-features

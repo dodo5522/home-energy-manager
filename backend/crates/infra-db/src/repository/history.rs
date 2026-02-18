@@ -3,11 +3,11 @@ use layer_domain::entity;
 use layer_use_case::interface::{GenerationRepositoryError as Error, HistoryRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
-pub struct GenerationRepository {
+pub struct HistoryRepository {
     db: DatabaseConnection,
 }
 
-impl GenerationRepository {
+impl HistoryRepository {
     pub fn new(db: DatabaseConnection) -> Self {
         Self { db }
     }
@@ -22,7 +22,7 @@ impl GenerationRepository {
 }
 
 #[async_trait::async_trait]
-impl HistoryRepositoryTrait for GenerationRepository {
+impl HistoryRepositoryTrait for HistoryRepository {
     async fn add(&self, new: &entity::HistoryEntity) -> Result<entity::HistoryId, Error> {
         let history = ActiveModel {
             unit: ActiveValue::Set(new.unit.to_owned().into()),

@@ -8,8 +8,8 @@ pub struct UnitRepository {
 }
 
 impl UnitRepository {
-    pub async fn new(db: DatabaseConnection) -> Result<Self, Error> {
-        Ok(Self { db })
+    pub fn new(db: DatabaseConnection) -> Self {
+        Self { db }
     }
 
     fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {

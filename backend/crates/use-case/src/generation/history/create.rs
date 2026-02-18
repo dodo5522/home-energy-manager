@@ -1,4 +1,4 @@
-use super::dto::CreateHistoryInput;
+use super::dto::HistoryInOut;
 use crate::interface::{HistoryRepositoryTrait, UnitOfWorkFactoryTrait, UnitOfWorkTrait};
 use std::io::Error;
 use std::marker::PhantomData;
@@ -24,14 +24,18 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: HistoryRepositoryTrait
         }
     }
 
-    pub async fn create(self, input: CreateHistoryInput) -> Result<i64, Error> {
+    pub async fn create(self, input: HistoryInOut) -> Result<i64, Error> {
         let uow = self.factory.begin().await?;
-        if let Ok(history) = self.repo.add(&input.into()).await {
-            uow.commit().await?;
-            Ok(history.into())
-        } else {
-            uow.rollback().await?;
-            Err(Error::other("failed to create"))
+        let h = self.repo.add(&input.into()).await;
+        match h {
+            Ok(history) => {
+                uow.commit().await?;
+                Ok(history.into())
+            }
+            Err(e) => {
+                uow.rollback().await?;
+                Err(Error::other(e))
+            }
         }
     }
 }

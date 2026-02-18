@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use layer_domain::entity::HistoryEntity;
 use layer_domain::value_object::Unit;
 
-#[derive(Debug, Clone)]
-pub struct CreateHistoryInput {
+#[derive(Debug, Clone, PartialEq)]
+pub struct HistoryInOut {
     /// 物理量の値
     pub value: f32,
     /// 物理量の単位
@@ -16,7 +16,7 @@ pub struct CreateHistoryInput {
     pub monitored_at: DateTime<Utc>,
 }
 
-impl From<HistoryEntity> for CreateHistoryInput {
+impl From<HistoryEntity> for HistoryInOut {
     fn from(record: HistoryEntity) -> Self {
         Self {
             value: record.value,
@@ -28,8 +28,8 @@ impl From<HistoryEntity> for CreateHistoryInput {
     }
 }
 
-impl From<CreateHistoryInput> for HistoryEntity {
-    fn from(input: CreateHistoryInput) -> Self {
+impl From<HistoryInOut> for HistoryEntity {
+    fn from(input: HistoryInOut) -> Self {
         HistoryEntity {
             value: input.value,
             unit: input.unit,

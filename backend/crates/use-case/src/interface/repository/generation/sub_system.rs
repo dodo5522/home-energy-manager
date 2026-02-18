@@ -1,4 +1,4 @@
-use super::errors::GenerationRepositoryError;
+use super::errors::GenerationError;
 use layer_domain::entity::SubSystemEntity;
 
 /// グループ（サブシステム）を記録するためのリポジトリインターフェース
@@ -12,7 +12,7 @@ pub trait SubSystemRepositoryTrait {
     /// * `Result<SubSystem, GenerationRepositoryError>` - 成功時は登録後のグループ（サブシステム）を返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &SubSystemEntity) -> Result<String, GenerationRepositoryError>;
+    async fn add(&self, new: &SubSystemEntity) -> Result<String, GenerationError>;
 
     /// グループ（サブシステム）を取得する
     ///
@@ -20,7 +20,7 @@ pub trait SubSystemRepositoryTrait {
     /// * `Result<Vec<GroupRecord>, GenerationRepositoryError>` - 成功時はグループ（サブシステム）のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<SubSystemEntity>, GenerationRepositoryError>;
+    async fn get(&self) -> Result<Vec<SubSystemEntity>, GenerationError>;
 
     /// グループ（サブシステム）が存在するか確認する
     ///
@@ -30,7 +30,7 @@ pub trait SubSystemRepositoryTrait {
     /// * `Result<bool, GenerationRepositoryError>` - 成功時は存在するかどうかを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn has(&self, system: &String) -> Result<bool, GenerationRepositoryError>;
+    async fn has(&self, system: &String) -> Result<bool, GenerationError>;
 
     /// グループ（サブシステム）を削除する
     ///
@@ -40,5 +40,5 @@ pub trait SubSystemRepositoryTrait {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, system: &String) -> Result<(), GenerationRepositoryError>;
+    async fn delete(&self, system: &String) -> Result<(), GenerationError>;
 }

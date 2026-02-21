@@ -1,6 +1,6 @@
 use crate::models::{labels::ActiveModel, prelude::Labels};
 use layer_domain::entity;
-use layer_use_case::interface::{GenerationRepositoryError as Error, LabelRepositoryTrait};
+use layer_use_case::interface::{GenerationError as Error, LabelRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
 pub struct LabelRepository {
@@ -8,26 +8,18 @@ pub struct LabelRepository {
 }
 
 impl LabelRepository {
-    pub async fn new(db: DatabaseConnection) -> Result<Self, Error> {
-        Ok(Self { db })
+    pub fn new(db: DatabaseConnection) -> Self {
+        Self { db }
     }
 
-    pub fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("instantiate history failed: {e}"))
-    }
-
-    pub fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("insert history error: {e}"))
-    }
-
-    pub fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("find history failed: {e}"))
+    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
+        Error::DbError(format!("{e}"))
     }
 }
 
 #[async_trait::async_trait]
 impl LabelRepositoryTrait for LabelRepository {
-    async fn add(&self, new: &entity::LabelRecord) -> Result<String, Error> {
+    async fn add(&self, new: &entity::LabelEntity) -> Result<String, Error> {
         let label = ActiveModel {
             label: ActiveValue::Set(new.label.to_owned()),
             remark: ActiveValue::Set(new.remark.to_owned()),
@@ -37,21 +29,21 @@ impl LabelRepositoryTrait for LabelRepository {
         let res = Labels::insert(label)
             .exec(&self.db)
             .await
-            .map_err(Self::map_err_insert)?;
+            .map_err(Self::map_db_err)?;
 
         Ok(res.last_insert_id)
     }
 
-    async fn get(&self) -> Result<Vec<entity::LabelRecord>, Error> {
+    async fn get(&self) -> Result<Vec<entity::LabelEntity>, Error> {
         let labels = Labels::find()
             .all(&self.db)
             .await
-            .map_err(Self::map_err_find)?;
+            .map_err(Self::map_db_err)?;
 
         let records = labels
             .into_iter()
             .map(|l| {
-                Ok(entity::LabelRecord {
+                Ok(entity::LabelEntity {
                     label: l.label,
                     remark: l.remark,
                 })
@@ -62,10 +54,12 @@ impl LabelRepositoryTrait for LabelRepository {
     }
 
     async fn has(&self, label: &str) -> Result<bool, Error> {
-        todo!()
+        Err(Error::NotImplemented("LabelRepository::has()".to_string()))
     }
 
     async fn delete(&self, label: &str) -> Result<(), Error> {
-        todo!()
+        Err(Error::NotImplemented(
+            "LabelRepository::delete()".to_string(),
+        ))
     }
 }

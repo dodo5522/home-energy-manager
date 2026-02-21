@@ -1,5 +1,5 @@
-use super::errors::GenerationRepositoryError;
-use layer_domain::{entity::UnitRecord, value_object::Unit};
+use super::errors::GenerationError;
+use layer_domain::{entity::UnitEntity, value_object::Unit};
 
 /// 単位を管理するためのリポジトリインターフェース
 #[async_trait::async_trait]
@@ -12,7 +12,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Unit, GenerationRepositoryError>` - 成功時は登録後の単位を返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &UnitRecord) -> Result<Unit, GenerationRepositoryError>;
+    async fn add(&self, new: &UnitEntity) -> Result<Unit, GenerationError>;
 
     /// 単位を取得する
     ///
@@ -20,7 +20,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Vec<UnitRecord>, GenerationRepositoryError>` - 成功時は単位のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<UnitRecord>, GenerationRepositoryError>;
+    async fn get(&self) -> Result<Vec<UnitEntity>, GenerationError>;
 
     /// 単位が存在するか確認する
     ///
@@ -30,7 +30,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<bool, GenerationRepositoryError>` - 成功時は存在するかどうかを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn has(&self, system: &Unit) -> Result<bool, GenerationRepositoryError>;
+    async fn has(&self, system: &Unit) -> Result<bool, GenerationError>;
 
     /// 単位を削除する
     ///
@@ -40,5 +40,5 @@ pub trait UnitRepositoryTrait {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, system: &Unit) -> Result<(), GenerationRepositoryError>;
+    async fn delete(&self, system: &Unit) -> Result<(), GenerationError>;
 }

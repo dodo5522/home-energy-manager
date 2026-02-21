@@ -1,6 +1,6 @@
 /// ラベルエンティティ
 #[derive(Debug, Clone, PartialEq)]
-pub struct LabelRecord {
+pub struct LabelEntity {
     /// ラベル
     pub label: String,
     /// 補足

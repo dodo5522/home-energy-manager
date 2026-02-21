@@ -1,6 +1,6 @@
 use crate::models::{prelude::Units, units::ActiveModel};
 use layer_domain::{entity, value_object};
-use layer_use_case::interface::{GenerationRepositoryError as Error, UnitRepositoryTrait};
+use layer_use_case::interface::{GenerationError as Error, UnitRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
 pub struct UnitRepository {
@@ -12,16 +12,16 @@ impl UnitRepository {
         Self { db }
     }
 
-    fn map_err_instance<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("instantiate unit failed: {e}"))
+    fn map_unknown_err<E: std::fmt::Display>(e: E) -> Error {
+        Error::Unknown(format!("{e}"))
     }
 
-    fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("insert unit error: {e}"))
+    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
+        Error::DbError(format!("{e}"))
     }
 
-    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("find unit failed: {e}"))
+    fn map_invalid_unit(unit: String) -> Error {
+        Error::InvalidUnit(unit)
     }
 }
 
@@ -37,22 +37,26 @@ impl UnitRepositoryTrait for UnitRepository {
         let res = Units::insert(unit)
             .exec(&self.db)
             .await
-            .map_err(Self::map_err_insert)?;
+            .map_err(Self::map_db_err)?;
 
-        Ok(value_object::Unit::new(res.last_insert_id).map_err(Self::map_err_instance)?)
+        Ok(value_object::Unit::new(res.last_insert_id).map_err(Self::map_unknown_err)?)
     }
 
     async fn get(&self) -> Result<Vec<entity::UnitEntity>, Error> {
         let units = Units::find()
             .all(&self.db)
             .await
-            .map_err(Self::map_err_find)?;
+            .map_err(Self::map_db_err)?;
 
         let records = units
             .into_iter()
             .map(|u| {
                 Ok(entity::UnitEntity {
-                    unit: u.unit.try_into().map_err(Self::map_err_find)?,
+                    unit: u
+                        .unit
+                        .clone()
+                        .try_into()
+                        .map_err(|_| Self::map_invalid_unit(u.unit))?,
                     remark: u.remark,
                 })
             })
@@ -62,10 +66,12 @@ impl UnitRepositoryTrait for UnitRepository {
     }
 
     async fn has(&self, system: &value_object::Unit) -> Result<bool, Error> {
-        todo!()
+        Err(Error::NotImplemented("UnitRepository::has()".to_string()))
     }
 
     async fn delete(&self, system: &value_object::Unit) -> Result<(), Error> {
-        todo!()
+        Err(Error::NotImplemented(
+            "UnitRepository::delete()".to_string(),
+        ))
     }
 }

@@ -8,7 +8,6 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub group: String,
-    pub source: String,
     pub label: String,
     pub unit: String,
     #[sea_orm(column_type = "Float")]

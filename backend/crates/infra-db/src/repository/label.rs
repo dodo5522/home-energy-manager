@@ -1,6 +1,6 @@
 use crate::models::{labels::ActiveModel, prelude::Labels};
 use layer_domain::entity;
-use layer_use_case::interface::{GenerationRepositoryError as Error, LabelRepositoryTrait};
+use layer_use_case::interface::{GenerationError as Error, LabelRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
 pub struct LabelRepository {
@@ -12,12 +12,8 @@ impl LabelRepository {
         Self { db }
     }
 
-    fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("insert history error: {e}"))
-    }
-
-    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("find history failed: {e}"))
+    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
+        Error::DbError(format!("{e}"))
     }
 }
 
@@ -33,7 +29,7 @@ impl LabelRepositoryTrait for LabelRepository {
         let res = Labels::insert(label)
             .exec(&self.db)
             .await
-            .map_err(Self::map_err_insert)?;
+            .map_err(Self::map_db_err)?;
 
         Ok(res.last_insert_id)
     }
@@ -42,7 +38,7 @@ impl LabelRepositoryTrait for LabelRepository {
         let labels = Labels::find()
             .all(&self.db)
             .await
-            .map_err(Self::map_err_find)?;
+            .map_err(Self::map_db_err)?;
 
         let records = labels
             .into_iter()
@@ -58,10 +54,12 @@ impl LabelRepositoryTrait for LabelRepository {
     }
 
     async fn has(&self, label: &str) -> Result<bool, Error> {
-        todo!()
+        Err(Error::NotImplemented("LabelRepository::has()".to_string()))
     }
 
     async fn delete(&self, label: &str) -> Result<(), Error> {
-        todo!()
+        Err(Error::NotImplemented(
+            "LabelRepository::delete()".to_string(),
+        ))
     }
 }

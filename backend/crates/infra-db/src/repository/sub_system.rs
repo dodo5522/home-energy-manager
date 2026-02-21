@@ -1,6 +1,6 @@
 use crate::models::{groups::ActiveModel, prelude::Groups};
 use layer_domain::entity;
-use layer_use_case::interface::{GenerationRepositoryError as Error, SubSystemRepositoryTrait};
+use layer_use_case::interface::{GenerationError as Error, SubSystemRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
 pub struct SubSystemRepository {
@@ -12,12 +12,8 @@ impl SubSystemRepository {
         Self { db }
     }
 
-    fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("insert group failed: {e}"))
-    }
-
-    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("find group failed: {e}"))
+    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
+        Error::DbError(format!("{e}"))
     }
 }
 
@@ -33,7 +29,7 @@ impl SubSystemRepositoryTrait for SubSystemRepository {
         let res = Groups::insert(group)
             .exec(&self.db)
             .await
-            .map_err(Self::map_err_insert)?;
+            .map_err(Self::map_db_err)?;
 
         Ok(res.last_insert_id)
     }
@@ -42,7 +38,7 @@ impl SubSystemRepositoryTrait for SubSystemRepository {
         let groups = Groups::find()
             .all(&self.db)
             .await
-            .map_err(Self::map_err_find)?;
+            .map_err(Self::map_db_err)?;
 
         let records = groups
             .into_iter()
@@ -58,10 +54,14 @@ impl SubSystemRepositoryTrait for SubSystemRepository {
     }
 
     async fn has(&self, label: &String) -> Result<bool, Error> {
-        todo!()
+        Err(Error::NotImplemented(
+            "SubSystemRepository::has()".to_string(),
+        ))
     }
 
     async fn delete(&self, label: &String) -> Result<(), Error> {
-        todo!()
+        Err(Error::NotImplemented(
+            "SubSystemRepository::delete()".to_string(),
+        ))
     }
 }

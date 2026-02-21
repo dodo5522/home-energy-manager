@@ -1,6 +1,6 @@
 use crate::models::{histories::ActiveModel, prelude::Histories};
 use layer_domain::entity;
-use layer_use_case::interface::{GenerationRepositoryError as Error, HistoryRepositoryTrait};
+use layer_use_case::interface::{GenerationError as Error, HistoryRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
 
 pub struct HistoryRepository {
@@ -12,12 +12,12 @@ impl HistoryRepository {
         Self { db }
     }
 
-    fn map_err_insert<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("insert history error: {e}"))
+    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
+        Error::DbError(format!("{e}"))
     }
 
-    fn map_err_find<E: std::fmt::Display>(e: E) -> Error {
-        Error::Infra(format!("find history failed: {e}"))
+    fn map_invalid_unit(unit: String) -> Error {
+        Error::InvalidUnit(unit)
     }
 }
 
@@ -36,28 +36,37 @@ impl HistoryRepositoryTrait for HistoryRepository {
         let res = Histories::insert(history)
             .exec(&self.db)
             .await
-            .map_err(Self::map_err_insert)?;
+            .map_err(Self::map_db_err)?;
 
         Ok(entity::HistoryId(res.last_insert_id))
     }
 
-    async fn get(&self, id: entity::HistoryId) -> Result<entity::HistoryEntity, Error> {
-        let history = Histories::find_by_id::<i64>(id.into())
+    async fn get(&self, id: entity::HistoryId) -> Result<Option<entity::HistoryEntity>, Error> {
+        let h = Histories::find_by_id::<i64>(id.into())
             .one(&self.db)
             .await
-            .map_err(Self::map_err_find)?
-            .ok_or(Error::Infra("not history".to_owned()))?;
+            .map_err(Self::map_db_err)?;
 
-        Ok(entity::HistoryEntity {
-            value: history.value,
-            unit: history.unit.try_into().map_err(Self::map_err_find)?,
-            sub_system: history.group,
-            label: history.label,
-            monitored_at: history.monitored_at.into(),
-        })
+        if let Some(history) = h {
+            Ok(Some(entity::HistoryEntity {
+                value: history.value,
+                unit: history
+                    .unit
+                    .clone()
+                    .try_into()
+                    .map_err(|_| Self::map_invalid_unit(history.unit))?,
+                sub_system: history.group,
+                label: history.label,
+                monitored_at: history.monitored_at.into(),
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
     async fn delete(&self, id: entity::HistoryId) -> Result<(), Error> {
-        Err(Error::NotImplemented)
+        Err(Error::NotImplemented(
+            "HistoryRepository::delete()".to_string(),
+        ))
     }
 }

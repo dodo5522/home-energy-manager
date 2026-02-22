@@ -1,26 +1,26 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { authClient } from '#/lib/auth-client'
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
+import { authClient } from '#/lib/auth-client';
 
 export const Route = createFileRoute('/demo/better-auth')({
   component: BetterAuthDemo,
-})
+});
 
 function BetterAuthDemo() {
-  const { data: session, isPending } = authClient.useSession()
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const { data: session, isPending } = authClient.useSession();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (isPending) {
     return (
       <div className="flex items-center justify-center py-10">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-900 dark:border-neutral-800 dark:border-t-neutral-100" />
       </div>
-    )
+    );
   }
 
   if (session?.user) {
@@ -58,7 +58,7 @@ function BetterAuthDemo() {
 
           <button
             onClick={() => {
-              void authClient.signOut()
+              void authClient.signOut();
             }}
             className="w-full h-9 px-4 text-sm font-medium border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
           >
@@ -79,13 +79,13 @@ function BetterAuthDemo() {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
       if (isSignUp) {
@@ -93,25 +93,25 @@ function BetterAuthDemo() {
           email,
           password,
           name,
-        })
+        });
         if (result.error) {
-          setError(result.error.message || 'Sign up failed')
+          setError(result.error.message || 'Sign up failed');
         }
       } else {
         const result = await authClient.signIn.email({
           email,
           password,
-        })
+        });
         if (result.error) {
-          setError(result.error.message || 'Sign in failed')
+          setError(result.error.message || 'Sign in failed');
         }
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      setError('An unexpected error occurred');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex justify-center py-10 px-4">
@@ -205,8 +205,8 @@ function BetterAuthDemo() {
           <button
             type="button"
             onClick={() => {
-              setIsSignUp(!isSignUp)
-              setError('')
+              setIsSignUp(!isSignUp);
+              setError('');
             }}
             className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
           >
@@ -230,5 +230,5 @@ function BetterAuthDemo() {
         </p>
       </div>
     </div>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
-import BetterAuthHeader from '../integrations/better-auth/header-user.tsx'
+import BetterAuthHeader from '../integrations/better-auth/header-user.tsx';
 
-import { useState } from 'react'
-import { Globe, Home, Menu, Network, X } from 'lucide-react'
+import { useState } from 'react';
+import { Globe, Home, Menu, Network, X } from 'lucide-react';
 
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -95,5 +95,5 @@ export default function Header() {
         </div>
       </aside>
     </>
-  )
+  );
 }

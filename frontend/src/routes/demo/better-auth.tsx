@@ -1,13 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { authClient } from '#/lib/auth-client';
+import {createFileRoute} from '@tanstack/react-router';
+import type {SubmitEvent} from 'react';
+import {useState} from 'react';
+import {authClient} from '#/lib/auth-client';
 
-export const Route = createFileRoute('/demo/better-auth')({
-  component: BetterAuthDemo,
-});
-
-function BetterAuthDemo() {
-  const { data: session, isPending } = authClient.useSession();
+const BetterAuthDemo = () => {
+  const {data: session, isPending} = authClient.useSession();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +15,8 @@ function BetterAuthDemo() {
   if (isPending) {
     return (
       <div className="flex items-center justify-center py-10">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-900 dark:border-neutral-800 dark:border-t-neutral-100" />
+        <div
+          className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-900 dark:border-neutral-800 dark:border-t-neutral-100"/>
       </div>
     );
   }
@@ -38,7 +36,7 @@ function BetterAuthDemo() {
 
           <div className="flex items-center gap-3">
             {session.user.image ? (
-              <img src={session.user.image} alt="" className="h-10 w-10" />
+              <img src={session.user.image} alt="" className="h-10 w-10"/>
             ) : (
               <div className="h-10 w-10 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
                 <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
@@ -57,6 +55,7 @@ function BetterAuthDemo() {
           </div>
 
           <button
+            type="button"
             onClick={() => {
               void authClient.signOut();
             }}
@@ -82,7 +81,7 @@ function BetterAuthDemo() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -106,7 +105,7 @@ function BetterAuthDemo() {
           setError(result.error.message || 'Sign in failed');
         }
       }
-    } catch (err) {
+    } catch (_) {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -134,6 +133,7 @@ function BetterAuthDemo() {
               >
                 Name
               </label>
+              {/** biome-ignore lint/correctness/useUniqueElementIds: only for template */}
               <input
                 id="name"
                 type="text"
@@ -149,6 +149,7 @@ function BetterAuthDemo() {
             <label htmlFor="email" className="text-sm font-medium leading-none">
               Email
             </label>
+            {/** biome-ignore lint/correctness/useUniqueElementIds: only for template */}
             <input
               id="email"
               type="email"
@@ -166,6 +167,7 @@ function BetterAuthDemo() {
             >
               Password
             </label>
+            {/** biome-ignore lint/correctness/useUniqueElementIds: only for template */}
             <input
               id="password"
               type="password"
@@ -190,7 +192,8 @@ function BetterAuthDemo() {
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-400 border-t-white dark:border-neutral-600 dark:border-t-neutral-900" />
+                <span
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-400 border-t-white dark:border-neutral-600 dark:border-t-neutral-900"/>
                 <span>Please wait</span>
               </span>
             ) : isSignUp ? (
@@ -231,4 +234,8 @@ function BetterAuthDemo() {
       </div>
     </div>
   );
-}
+};
+
+export const Route = createFileRoute('/demo/better-auth')({
+  component: BetterAuthDemo,
+});

@@ -1,22 +1,22 @@
-import { Link } from '@tanstack/react-router';
+import {Link} from '@tanstack/react-router';
+import {Globe, Home, Menu, Network, X} from 'lucide-react';
 
+import {useState} from 'react';
 import BetterAuthHeader from '../integrations/better-auth/header-user.tsx';
 
-import { useState } from 'react';
-import { Globe, Home, Menu, Network, X } from 'lucide-react';
-
-export default function Header() {
+const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
       <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
         <button
+          type="button"
           onClick={() => setIsOpen(true)}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           aria-label="Open menu"
         >
-          <Menu size={24} />
+          <Menu size={24}/>
         </button>
         <h1 className="ml-4 text-xl font-semibold">
           <Link to="/">
@@ -37,11 +37,12 @@ export default function Header() {
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <h2 className="text-xl font-bold">Navigation</h2>
           <button
+            type="button"
             onClick={() => setIsOpen(false)}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             aria-label="Close menu"
           >
-            <X size={24} />
+            <X size={24}/>
           </button>
         </div>
 
@@ -55,7 +56,7 @@ export default function Header() {
                 'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
             }}
           >
-            <Home size={20} />
+            <Home size={20}/>
             <span className="font-medium">Home</span>
           </Link>
 
@@ -70,7 +71,7 @@ export default function Header() {
                 'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
             }}
           >
-            <Network size={20} />
+            <Network size={20}/>
             <span className="font-medium">TanStack Query</span>
           </Link>
 
@@ -83,7 +84,7 @@ export default function Header() {
                 'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
             }}
           >
-            <Globe size={20} />
+            <Globe size={20}/>
             <span className="font-medium">Better Auth</span>
           </Link>
 
@@ -91,9 +92,11 @@ export default function Header() {
         </nav>
 
         <div className="p-4 border-t border-gray-700 bg-gray-800 flex flex-col gap-2">
-          <BetterAuthHeader />
+          <BetterAuthHeader/>
         </div>
       </aside>
     </>
   );
-}
+};
+
+export default Header;

@@ -53,13 +53,13 @@ impl SubSystemRepositoryTrait for SubSystemRepository {
         Ok(records)
     }
 
-    async fn has(&self, label: &String) -> Result<bool, Error> {
+    async fn has(&self, system: &String) -> Result<bool, Error> {
         Err(Error::NotImplemented(
             "SubSystemRepository::has()".to_string(),
         ))
     }
 
-    async fn delete(&self, label: &String) -> Result<(), Error> {
+    async fn delete(&self, system: &String) -> Result<(), Error> {
         Err(Error::NotImplemented(
             "SubSystemRepository::delete()".to_string(),
         ))

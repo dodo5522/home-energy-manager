@@ -12,30 +12,32 @@ pub trait LabelRepositoryTrait {
     /// * `Result<SubSystem, GenerationRepositoryError>` - 成功時は登録後のラベルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &LabelEntity) -> Result<String, GenerationError>;
+    async fn add(&self, e: &LabelEntity) -> Result<String, GenerationError>;
 
     /// ラベルを取得する
     ///
+    /// # Arguments
+    /// * `label` - 取得するラベルの名前（オプション）
     /// # Returns
     /// * `Result<Vec<LabelRecord>, GenerationRepositoryError>` - 成功時はラベルのエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<LabelEntity>, GenerationError>;
+    async fn get(&self, label: Option<&str>) -> Result<Vec<LabelEntity>, GenerationError>;
 
-    /// ラベルが存在するか確認する
+    /// ラベルを更新する
     ///
     /// # Arguments
-    /// * `system` - 削除するラベル
+    /// * `entity` - 更新するラベルのエンティティ
     /// # Returns
-    /// * `Result<bool, GenerationRepositoryError>` - 成功時は存在するかどうかを返し、失敗時はエラーを返す
+    /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn has(&self, label: &str) -> Result<bool, GenerationError>;
+    async fn update(&self, e: &LabelEntity) -> Result<LabelEntity, GenerationError>;
 
     /// ラベルを削除する
     ///
     /// # Arguments
-    /// * `system` - 削除するラベル
+    /// * `label` - 削除するラベルの名前
     /// # Returns
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors

@@ -4,5 +4,5 @@ pub struct LabelEntity {
     /// ラベル
     pub label: String,
     /// 補足
-    pub remark: String,
+    pub remark: Option<String>,
 }

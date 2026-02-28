@@ -20,6 +20,7 @@ pub fn route() -> Router {
     health::checker::check_health,
     generation::history::get_history,
     generation::history::post_history,
+    generation::label::delete_label,
     generation::label::post_label,
     generation::label::get_label,
     generation::label::get_labels,

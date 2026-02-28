@@ -105,3 +105,33 @@ pub async fn get_label(
 
     Ok((StatusCode::OK, Json(label.into())))
 }
+
+#[utoipa::path(
+    delete,
+    tag = "Generation - Label",
+    description = "Delete specified label",
+    path = "/generation/labels/{label}",
+    params(
+        ("label", description = "label name"),
+    ),
+    responses(
+        (status = 204, description = "OK", body = LabelItem),
+        (status = 404, description = "Not Found", body = ErrorResponse),
+        (status = 500, description = "Internal Error", body = ErrorResponse),
+    )
+)]
+pub async fn delete_label(
+    Path(label): Path<String>,
+) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
+    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let use_case = LabelUseCase::new(
+        LabelRepository::new(db.clone()),
+        UnitOfWorkFactory::new(db.clone()),
+    );
+    let _ = use_case
+        .delete(label)
+        .await
+        .map_err(map_internal_server_error)?;
+
+    Ok(StatusCode::NO_CONTENT)
+}

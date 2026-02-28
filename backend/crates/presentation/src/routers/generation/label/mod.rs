@@ -1,5 +1,5 @@
 mod endpoints;
-pub mod get;
-pub mod post;
+mod get;
+mod post;
 
 pub use endpoints::*;

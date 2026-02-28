@@ -1,9 +1,12 @@
-use super::get::LabelItem;
-use super::post::LabelPostRequest;
+use super::{get::LabelItem, post::LabelPostRequest, update::UpdateLabelQuery};
 use crate::di::db::get_connection;
 use crate::error_mapper::map_internal_server_error;
 use crate::errors::ErrorResponse;
-use axum::{Json, extract::Path, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Path, Query},
+    http::StatusCode,
+};
 use layer_infra_db::repository::label::LabelRepository;
 use layer_infra_db::unit_of_work::UnitOfWorkFactory;
 use layer_use_case::label::{LabelInOut, LabelUseCase};
@@ -44,6 +47,46 @@ pub async fn post_label(
         ))
     } else {
         Ok(StatusCode::CREATED)
+    }
+}
+
+#[utoipa::path(
+    put,
+    tag = "Generation - Label",
+    description = "Update the specified label",
+    path = "/generation/labels/{label}",
+    params(
+        UpdateLabelQuery,
+        ("label", description = "label name"),
+    ),
+    responses(
+        (status = 200, description = "OK"),
+        (status = 400, description = "Bad request", body = ErrorResponse),
+        (status = 500, description = "Internal Error", body = ErrorResponse),
+    )
+)]
+pub async fn update_label(
+    Path(label): Path<String>,
+    Query(query): Query<UpdateLabelQuery>,
+) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
+    let label = LabelInOut {
+        label: label,
+        remark: query.remark,
+    };
+    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let use_case = LabelUseCase::new(
+        LabelRepository::new(db.clone()),
+        UnitOfWorkFactory::new(db.clone()),
+    );
+    if let Err(e) = use_case.update(label).await {
+        Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                message: format!("{e}"),
+            }),
+        ))
+    } else {
+        Ok(StatusCode::OK)
     }
 }
 

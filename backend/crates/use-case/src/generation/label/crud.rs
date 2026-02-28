@@ -1,6 +1,6 @@
 use super::dto::LabelInOut;
 use crate::interface::{LabelRepositoryTrait, UnitOfWorkFactoryTrait, UnitOfWorkTrait};
-use std::io::Error;
+use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
 
 pub struct LabelUseCase<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait> {
@@ -31,7 +31,7 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
         }
     }
 
-    pub async fn get(self, label: impl AsRef<str>) -> Result<LabelInOut, Error> {
+    pub async fn get(self, label: impl AsRef<str>) -> Result<Option<LabelInOut>, Error> {
         let labels = self
             .repo
             .get(Some(label.as_ref()))
@@ -39,9 +39,9 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
             .map_err(Error::other)?;
 
         if let Some(label) = labels.first() {
-            Ok(label.to_owned().into())
+            Ok(Some(label.to_owned().into()))
         } else {
-            Err(Error::other("label not found"))
+            Ok(None)
         }
     }
 

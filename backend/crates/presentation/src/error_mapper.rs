@@ -11,6 +11,15 @@ pub(crate) fn map_bad_request<E: std::fmt::Display>(e: E) -> (StatusCode, Json<E
     )
 }
 
+pub(crate) fn map_not_found_error<E: std::fmt::Display>(e: E) -> (StatusCode, Json<ErrorResponse>) {
+    (
+        StatusCode::NOT_FOUND,
+        Json(ErrorResponse {
+            message: format!("{e}"),
+        }),
+    )
+}
+
 pub(crate) fn map_internal_server_error<E: std::fmt::Display>(
     e: E,
 ) -> (StatusCode, Json<ErrorResponse>) {

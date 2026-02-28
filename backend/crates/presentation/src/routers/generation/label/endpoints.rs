@@ -1,6 +1,6 @@
 use super::{get::LabelItem, post::LabelPostRequest, update::UpdateLabelQuery};
 use crate::di::db::get_connection;
-use crate::error_mapper::map_internal_server_error;
+use crate::error_mapper::{map_internal_server_error, map_not_found_error};
 use crate::errors::ErrorResponse;
 use axum::{
     Json,
@@ -78,16 +78,8 @@ pub async fn update_label(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
     );
-    if let Err(e) = use_case.update(label).await {
-        Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ErrorResponse {
-                message: format!("{e}"),
-            }),
-        ))
-    } else {
-        Ok(StatusCode::OK)
-    }
+    let _ = use_case.update(label).await.map_err(map_not_found_error)?;
+    Ok(StatusCode::OK)
 }
 
 #[utoipa::path(
@@ -141,12 +133,16 @@ pub async fn get_label(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
     );
-    let label = use_case
-        .get(label)
+    let found = use_case
+        .get(label.to_owned())
         .await
         .map_err(map_internal_server_error)?;
 
-    Ok((StatusCode::OK, Json(label.into())))
+    if let Some(found_label) = found {
+        Ok((StatusCode::OK, Json(found_label.into())))
+    } else {
+        Err(map_not_found_error(format!("Label '{}' not found", label)))
+    }
 }
 
 #[utoipa::path(
@@ -171,10 +167,6 @@ pub async fn delete_label(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
     );
-    let _ = use_case
-        .delete(label)
-        .await
-        .map_err(map_internal_server_error)?;
-
+    let _ = use_case.delete(label).await.map_err(map_not_found_error)?;
     Ok(StatusCode::NO_CONTENT)
 }

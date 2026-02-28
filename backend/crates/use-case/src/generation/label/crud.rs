@@ -31,7 +31,21 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
         }
     }
 
-    pub async fn get(self) -> Result<Vec<LabelInOut>, Error> {
+    pub async fn get(self, label: impl AsRef<str>) -> Result<LabelInOut, Error> {
+        let labels = self
+            .repo
+            .get(Some(label.as_ref()))
+            .await
+            .map_err(Error::other)?;
+
+        if let Some(label) = labels.first() {
+            Ok(label.to_owned().into())
+        } else {
+            Err(Error::other("label not found"))
+        }
+    }
+
+    pub async fn get_all(self) -> Result<Vec<LabelInOut>, Error> {
         let labels = self.repo.get(None).await.map_err(Error::other)?;
         Ok(labels.into_iter().map(|u| u.into()).collect())
     }

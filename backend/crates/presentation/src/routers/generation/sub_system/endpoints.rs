@@ -10,7 +10,7 @@ use layer_use_case::sub_system::{CreateSubSystemUseCase, GetSubSystemsUseCase, S
 
 #[utoipa::path(
     post,
-    tag = "Generation",
+    tag = "Generation - Sub System",
     description = "Create a new sub system",
     path = "/generation/sub_system",
     request_body = SubSystemPostRequest,
@@ -49,7 +49,7 @@ pub async fn post_sub_system(
 
 #[utoipa::path(
     get,
-    tag = "Generation",
+    tag = "Generation - Sub System",
     description = "Get existing sub systems",
     path = "/generation/sub_system",
     responses(

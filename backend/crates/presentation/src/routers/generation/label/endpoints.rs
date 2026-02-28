@@ -10,7 +10,7 @@ use layer_use_case::label::{LabelInOut, LabelUseCase};
 
 #[utoipa::path(
     post,
-    tag = "Generation",
+    tag = "Generation - Label",
     description = "Create a new label",
     path = "/generation/labels",
     request_body = LabelPostRequest,
@@ -49,7 +49,7 @@ pub async fn post_label(
 
 #[utoipa::path(
     get,
-    tag = "Generation",
+    tag = "Generation - Label",
     description = "Get existing labels",
     path = "/generation/labels",
     responses(
@@ -78,7 +78,7 @@ pub async fn get_labels()
 
 #[utoipa::path(
     get,
-    tag = "Generation",
+    tag = "Generation - Label",
     description = "Get specified label",
     path = "/generation/labels/{label}",
     params(

@@ -10,7 +10,7 @@ use layer_use_case::unit::{CreateUnitUseCase, GetUnitsUseCase, UnitInOut};
 
 #[utoipa::path(
     post,
-    tag = "Generation",
+    tag = "Generation - Unit",
     description = "Create a new unit",
     path = "/generation/unit",
     request_body = UnitPostRequest,
@@ -49,7 +49,7 @@ pub async fn post_unit(
 
 #[utoipa::path(
     get,
-    tag = "Generation",
+    tag = "Generation - Unit",
     description = "Get existing units",
     path = "/generation/unit",
     responses(

@@ -3,16 +3,16 @@ use super::post::LabelPostRequest;
 use crate::di::db::get_connection;
 use crate::error_mapper::map_internal_server_error;
 use crate::errors::ErrorResponse;
-use axum::{Json, http::StatusCode};
+use axum::{Json, extract::Path, http::StatusCode};
 use layer_infra_db::repository::label::LabelRepository;
 use layer_infra_db::unit_of_work::UnitOfWorkFactory;
-use layer_use_case::label::{CreateLabelUseCase, GetLabelsUseCase, LabelInOut};
+use layer_use_case::label::{LabelInOut, LabelUseCase};
 
 #[utoipa::path(
     post,
     tag = "Generation",
     description = "Create a new label",
-    path = "/generation/label",
+    path = "/generation/labels",
     request_body = LabelPostRequest,
     responses(
         (status = 201, description = "OK"),
@@ -30,7 +30,7 @@ pub async fn post_label(
     println!("Inserting label record: {:?}", label);
 
     let db = get_connection().await.map_err(map_internal_server_error)?;
-    let use_case = CreateLabelUseCase::new(
+    let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
     );
@@ -51,7 +51,7 @@ pub async fn post_label(
     get,
     tag = "Generation",
     description = "Get existing labels",
-    path = "/generation/label",
+    path = "/generation/labels",
     responses(
         (status = 200, description = "OK", body = Vec<LabelItem>),
         (status = 404, description = "Not Found", body = ErrorResponse),
@@ -61,11 +61,47 @@ pub async fn post_label(
 pub async fn get_labels()
 -> Result<(StatusCode, Json<Vec<LabelItem>>), (StatusCode, Json<ErrorResponse>)> {
     let db = get_connection().await.map_err(map_internal_server_error)?;
-    let use_case = GetLabelsUseCase::new(LabelRepository::new(db.clone()));
-    let labels = use_case.get().await.map_err(map_internal_server_error)?;
+    let use_case = LabelUseCase::new(
+        LabelRepository::new(db.clone()),
+        UnitOfWorkFactory::new(db.clone()),
+    );
+    let labels = use_case
+        .get_all()
+        .await
+        .map_err(map_internal_server_error)?;
 
     Ok((
         StatusCode::OK,
         Json(labels.into_iter().map(LabelItem::from).collect()),
     ))
+}
+
+#[utoipa::path(
+    get,
+    tag = "Generation",
+    description = "Get specified label",
+    path = "/generation/labels/{label}",
+    params(
+        ("label", description = "label name"),
+    ),
+    responses(
+        (status = 200, description = "OK", body = LabelItem),
+        (status = 404, description = "Not Found", body = ErrorResponse),
+        (status = 500, description = "Internal Error", body = ErrorResponse),
+    )
+)]
+pub async fn get_label(
+    Path(label): Path<String>,
+) -> Result<(StatusCode, Json<LabelItem>), (StatusCode, Json<ErrorResponse>)> {
+    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let use_case = LabelUseCase::new(
+        LabelRepository::new(db.clone()),
+        UnitOfWorkFactory::new(db.clone()),
+    );
+    let label = use_case
+        .get(label)
+        .await
+        .map_err(map_internal_server_error)?;
+
+    Ok((StatusCode::OK, Json(label.into())))
 }

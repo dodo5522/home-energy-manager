@@ -15,9 +15,6 @@ utoipa.workspace = true
 utoipa-swagger-ui.workspace = true
 utoipa-redoc.workspace = true
 
-[dependencies.layer-domain]
-path = "../domain"
-
 [dependencies.layer-infra-db]
 path = "../infra-db"
 

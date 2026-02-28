@@ -10,7 +10,8 @@ pub fn route() -> Router {
     Router::new()
         .merge(Router::new().route("/history", post(history::post_history)))
         .merge(Router::new().route("/history/{id}", get(history::get_history)))
-        .merge(Router::new().route("/label", post(label::post_label).get(label::get_labels)))
+        .merge(Router::new().route("/labels", post(label::post_label).get(label::get_labels)))
+        .merge(Router::new().route("/labels/{label}", get(label::get_label)))
         .merge(Router::new().route(
             "/sub_system",
             post(sub_system::post_sub_system).get(sub_system::get_sub_systems),

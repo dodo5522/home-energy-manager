@@ -21,6 +21,7 @@ pub fn route() -> Router {
     generation::history::get_history,
     generation::history::post_history,
     generation::label::post_label,
+    generation::label::get_label,
     generation::label::get_labels,
     generation::sub_system::post_sub_system,
     generation::sub_system::get_sub_systems,

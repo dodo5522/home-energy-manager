@@ -12,7 +12,7 @@ impl From<LabelEntity> for LabelInOut {
     fn from(record: LabelEntity) -> Self {
         Self {
             label: record.label,
-            remark: record.remark,
+            remark: record.remark.unwrap_or_default(),
         }
     }
 }
@@ -21,7 +21,7 @@ impl From<LabelInOut> for LabelEntity {
     fn from(input: LabelInOut) -> Self {
         LabelEntity {
             label: input.label,
-            remark: input.remark,
+            remark: Some(input.remark),
         }
     }
 }

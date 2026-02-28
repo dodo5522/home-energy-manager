@@ -65,11 +65,11 @@ impl UnitRepositoryTrait for UnitRepository {
         Ok(records)
     }
 
-    async fn has(&self, system: &value_object::Unit) -> Result<bool, Error> {
+    async fn has(&self, unit: &value_object::Unit) -> Result<bool, Error> {
         Err(Error::NotImplemented("UnitRepository::has()".to_string()))
     }
 
-    async fn delete(&self, system: &value_object::Unit) -> Result<(), Error> {
+    async fn delete(&self, unit: &value_object::Unit) -> Result<(), Error> {
         Err(Error::NotImplemented(
             "UnitRepository::delete()".to_string(),
         ))

@@ -4,6 +4,7 @@ pub enum GenerationError {
     Unknown(String),
     DbError(String),
     InvalidUnit(String),
+    NotFound(String),
 }
 
 impl std::fmt::Display for GenerationError {
@@ -13,6 +14,7 @@ impl std::fmt::Display for GenerationError {
             Self::Unknown(msg) => write!(f, "Unknown error with: {msg}"),
             Self::DbError(msg) => write!(f, "Database error with: {msg}"),
             Self::InvalidUnit(unit) => write!(f, "Invalid unit: {unit}"),
+            Self::NotFound(id) => write!(f, "Not found: {id}"),
         }
     }
 }

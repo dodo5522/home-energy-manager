@@ -1,24 +1,49 @@
+import {TanStackDevtools} from '@tanstack/react-devtools';
+import type {QueryClient} from '@tanstack/react-query';
 import {
+  createRootRouteWithContext,
   HeadContent,
   Scripts,
-  createRootRouteWithContext,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { TanStackDevtools } from '@tanstack/react-devtools';
-
+import {TanStackRouterDevtoolsPanel} from '@tanstack/react-router-devtools';
 import Header from '../components/Header';
 
-import TanStackQueryProvider from '../integrations/tanstack-query/root-provider';
-
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
-
+import TanStackQueryProvider from '../integrations/tanstack-query/root-provider';
 import appCss from '../styles.css?url';
-
-import type { QueryClient } from '@tanstack/react-query';
 
 interface MyRouterContext {
   queryClient: QueryClient;
 }
+
+const RootDocument = ({children}: { children: React.ReactNode }) => {
+  return (
+    <html lang="en">
+    <head>
+      <HeadContent/>
+    </head>
+    <body>
+    <TanStackQueryProvider>
+      <Header/>
+      {children}
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel/>,
+          },
+          TanStackQueryDevtools,
+        ]}
+      />
+    </TanStackQueryProvider>
+    <Scripts/>
+    </body>
+    </html>
+  );
+};
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
@@ -31,7 +56,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Home energy manager',
       },
     ],
     links: [
@@ -43,32 +68,3 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   }),
   shellComponent: RootDocument,
 });
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <TanStackQueryProvider>
-          <Header />
-          {children}
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              TanStackQueryDevtools,
-            ]}
-          />
-        </TanStackQueryProvider>
-        <Scripts />
-      </body>
-    </html>
-  );
-}

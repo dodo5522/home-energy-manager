@@ -9,5 +9,7 @@ dist-ssr
 .wrangler
 .output
 .vinxi
+.vite
+.vscode
 __unconfig*
 todos.json

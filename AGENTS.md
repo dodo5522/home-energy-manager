@@ -23,6 +23,8 @@
     - コーディングスタイル
     - テスト指針
     - コミット・PR指針
+- `04_software_design.md`
+    - backend/frontend の設計上のポイント
 
 ### 2. 作業引き継ぎドキュメント（`.steering/`）
 

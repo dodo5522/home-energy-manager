@@ -1,9 +1,28 @@
-import {createFileRoute} from '@tanstack/react-router';
+import {createFileRoute, Navigate} from '@tanstack/react-router';
 import type {SubmitEvent} from 'react';
 import {useState} from 'react';
 import {authClient} from '#/lib/auth-client';
 
-const BetterAuthDemo = () => {
+type LoginSearch = {
+  redirect?: string;
+};
+
+const resolveRedirect = (redirect?: string) => {
+  if (typeof redirect !== 'string') {
+    return '/';
+  }
+
+  if (!redirect.startsWith('/')) {
+    return '/';
+  }
+
+  return redirect;
+};
+
+const LoginPage = () => {
+  const {redirect} = Route.useSearch();
+  const redirectTo = resolveRedirect(redirect);
+
   const {data: session, isPending} = authClient.useSession();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -22,63 +41,7 @@ const BetterAuthDemo = () => {
   }
 
   if (session?.user) {
-    return (
-      <div className="flex justify-center py-10 px-4">
-        <div className="w-full max-w-md p-6 space-y-6">
-          <div className="space-y-1.5">
-            <h1 className="text-lg font-semibold leading-none tracking-tight">
-              Welcome back
-            </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              You're signed in as {session.user.email}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {session.user.image ? (
-              <img src={session.user.image} alt="" className="h-10 w-10"/>
-            ) : (
-              <div className="h-10 w-10 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
-                <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                  {session.user.name?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
-                {session.user.name}
-              </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                {session.user.email}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              void authClient.signOut();
-            }}
-            className="w-full h-9 px-4 text-sm font-medium border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-          >
-            Sign out
-          </button>
-
-          <p className="text-xs text-center text-neutral-400 dark:text-neutral-500">
-            Built with{' '}
-            <a
-              href="https://better-auth.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium hover:text-neutral-600 dark:hover:text-neutral-300"
-            >
-              BETTER-AUTH
-            </a>
-            .
-          </p>
-        </div>
-      </div>
-    );
+    return <Navigate to={redirectTo} replace/>;
   }
 
   const handleSubmit = async (e: SubmitEvent) => {
@@ -95,6 +58,7 @@ const BetterAuthDemo = () => {
         });
         if (result.error) {
           setError(result.error.message || 'Sign up failed');
+          return;
         }
       } else {
         const result = await authClient.signIn.email({
@@ -103,6 +67,7 @@ const BetterAuthDemo = () => {
         });
         if (result.error) {
           setError(result.error.message || 'Sign in failed');
+          return;
         }
       }
     } catch (_) {
@@ -121,7 +86,7 @@ const BetterAuthDemo = () => {
         <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 mb-6">
           {isSignUp
             ? 'Enter your information to create an account'
-            : 'Enter your email below to login to your account'}
+            : 'Sign in to open the protected page'}
         </p>
 
         <form onSubmit={handleSubmit} className="grid gap-4">
@@ -133,7 +98,7 @@ const BetterAuthDemo = () => {
               >
                 Name
               </label>
-              {/** biome-ignore lint/correctness/useUniqueElementIds: only for template */}
+              {/** biome-ignore lint/correctness/useUniqueElementIds: template form */}
               <input
                 id="name"
                 type="text"
@@ -149,7 +114,7 @@ const BetterAuthDemo = () => {
             <label htmlFor="email" className="text-sm font-medium leading-none">
               Email
             </label>
-            {/** biome-ignore lint/correctness/useUniqueElementIds: only for template */}
+            {/** biome-ignore lint/correctness/useUniqueElementIds: template form */}
             <input
               id="email"
               type="email"
@@ -167,7 +132,7 @@ const BetterAuthDemo = () => {
             >
               Password
             </label>
-            {/** biome-ignore lint/correctness/useUniqueElementIds: only for template */}
+            {/** biome-ignore lint/correctness/useUniqueElementIds: template form */}
             <input
               id="password"
               type="password"
@@ -218,24 +183,14 @@ const BetterAuthDemo = () => {
               : "Don't have an account? Sign up"}
           </button>
         </div>
-
-        <p className="mt-6 text-xs text-center text-neutral-400 dark:text-neutral-500">
-          Built with{' '}
-          <a
-            href="https://better-auth.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium hover:text-neutral-600 dark:hover:text-neutral-300"
-          >
-            BETTER-AUTH
-          </a>
-          .
-        </p>
       </div>
     </div>
   );
 };
 
-export const Route = createFileRoute('/demo/better-auth')({
-  component: BetterAuthDemo,
+export const Route = createFileRoute('/login')({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+  }),
+  component: LoginPage,
 });

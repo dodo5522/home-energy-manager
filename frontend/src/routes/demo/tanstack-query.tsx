@@ -1,7 +1,11 @@
 import {useQuery} from '@tanstack/react-query';
-import {createFileRoute} from '@tanstack/react-router';
+import {createFileRoute, Navigate} from '@tanstack/react-router';
+
+import {authClient} from '#/lib/auth-client';
 
 const TanStackQueryDemo = () => {
+  const {data: session} = authClient.useSession();
+
   const {data} = useQuery({
     queryKey: ['todos'],
     queryFn: () =>
@@ -12,6 +16,10 @@ const TanStackQueryDemo = () => {
       ]),
     initialData: [],
   });
+
+  if (!session) {
+    return <Navigate to={'/login'} replace/>;
+  }
 
   return (
     <div

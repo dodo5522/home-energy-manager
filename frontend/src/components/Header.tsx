@@ -7,14 +7,28 @@ import BetterAuthHeader from './HeaderUser.tsx';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const {data: session} = authClient.useSession();
+  const {data: session, isPending} = authClient.useSession();
+
+  if (!session?.user || isPending) {
+    return (
+      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
+        <div className="h-10 w-10 rounded-lg bg-gray-800 animate-pulse"/>
+        <h1 className="ml-4 text-xl font-semibold">
+          <img
+            src="/tanstack-word-logo-white.svg"
+            alt="TanStack Logo"
+            className="h-10"
+          />
+        </h1>
+      </header>
+    );
+  }
 
   return (
     <>
       <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
         <button
           type="button"
-          disabled={!session}
           onClick={() => setIsOpen(true)}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           aria-label="Open menu"

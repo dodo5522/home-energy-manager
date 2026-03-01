@@ -1,17 +1,20 @@
 import {Link} from '@tanstack/react-router';
-import {Globe, Home, Menu, Network, X} from 'lucide-react';
-
+import {Home, Menu, Network, X} from 'lucide-react';
 import {useState} from 'react';
-import BetterAuthHeader from '../integrations/better-auth/header-user.tsx';
+
+import {authClient} from '#/lib/auth-client';
+import BetterAuthHeader from './HeaderUser.tsx';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const {data: session} = authClient.useSession();
 
   return (
     <>
       <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
         <button
           type="button"
+          disabled={!session}
           onClick={() => setIsOpen(true)}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           aria-label="Open menu"
@@ -73,19 +76,6 @@ const Header = () => {
           >
             <Network size={20}/>
             <span className="font-medium">TanStack Query</span>
-          </Link>
-
-          <Link
-            to="/demo/better-auth"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Globe size={20}/>
-            <span className="font-medium">Better Auth</span>
           </Link>
 
           {/* Demo Links End */}

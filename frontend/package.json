@@ -19,6 +19,7 @@
     "check": "biome check"
   },
   "dependencies": {
+    "@mui/material": "^7.3.8",
     "@t3-oss/env-core": "^0.13.8",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "^0.7.0",

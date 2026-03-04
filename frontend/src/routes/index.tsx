@@ -1,3 +1,13 @@
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Stack,
+  Typography,
+} from '@mui/material';
 import {createFileRoute, Navigate} from '@tanstack/react-router';
 import {authClient} from '#/lib/auth-client';
 
@@ -6,61 +16,65 @@ const TopPage = () => {
 
   if (isPending) {
     return (
-      <div className="flex items-center justify-center py-10">
-        <div
-          className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-900 dark:border-neutral-800 dark:border-t-neutral-100"/>
-      </div>
+      <Box sx={{display: 'flex', justifyContent: 'center', py: 10}}>
+        <CircularProgress size={24}/>
+      </Box>
     );
   }
 
   if (!session?.user) {
     return <Navigate to="/login" search={{redirect: '/'}} replace/>;
-  } else {
-    return (
-      <div className="flex justify-center py-10 px-4">
-        <div className="w-full max-w-md p-6 space-y-6">
-          <div className="space-y-1.5">
-            <h1 className="text-lg font-semibold leading-none tracking-tight">
-              Welcome back
-            </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              You're signed in as {session.user.email}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {session.user.image ? (
-              <img src={session.user.image} alt="" className="h-10 w-10"/>
-            ) : (
-              <div className="h-10 w-10 bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
-                <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                  {session.user.name?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
-                {session.user.name}
-              </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                {session.user.email}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              void authClient.signOut();
-            }}
-            className="w-full h-9 px-4 text-sm font-medium border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
-    );
   }
+
+  return (
+    <Box sx={{display: 'flex', justifyContent: 'center', px: 2, py: 10}}>
+      <Card sx={{width: '100%', maxWidth: 420}}>
+        <CardContent>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="h6" fontWeight={600}>
+                Welcome back
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                You're signed in as {session.user.email}
+              </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {session.user.image ? (
+                <Avatar
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  sx={{width: 40, height: 40}}
+                />
+              ) : (
+                <Avatar sx={{width: 40, height: 40}}>
+                  {(session.user.name?.charAt(0) || 'U').toUpperCase()}
+                </Avatar>
+              )}
+              <Box sx={{minWidth: 0}}>
+                <Typography variant="body2" fontWeight={600} noWrap>
+                  {session.user.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap>
+                  {session.user.email}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Button
+              variant="outlined"
+              onClick={() => {
+                void authClient.signOut();
+              }}
+            >
+              Sign out
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
+  );
 };
 
 export const Route = createFileRoute('/')({component: TopPage});

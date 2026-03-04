@@ -1,3 +1,11 @@
+import {
+  Avatar,
+  Box,
+  Button,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material';
 import {Link, useNavigate} from '@tanstack/react-router';
 import {authClient} from '#/lib/auth-client';
 
@@ -7,42 +15,66 @@ const BetterAuthHeader = () => {
 
   if (isPending) {
     return (
-      <div className="h-8 w-8 bg-neutral-100 dark:bg-neutral-800 animate-pulse"/>
+      <Skeleton
+        variant="rounded"
+        width={120}
+        height={36}
+        sx={{bgcolor: 'grey.700'}}
+      />
     );
   } else if (session?.user) {
     return (
-      <div className="flex items-center gap-2">
+      <Stack direction="row" spacing={1} alignItems="center">
         {session.user.image ? (
-          <img src={session.user.image} alt="" className="h-8 w-8"/>
+          <Avatar
+            src={session.user.image}
+            alt={session.user.name || 'User'}
+            sx={{width: 32, height: 32}}
+          />
         ) : (
-          <div className="h-8 w-8 bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+          <Avatar sx={{width: 32, height: 32}}>
+            <Typography variant="caption" fontWeight={600}>
               {session.user.name?.charAt(0).toUpperCase() || 'U'}
-            </span>
-          </div>
+            </Typography>
+          </Avatar>
         )}
-        <button
-          type="button"
+        <Button
+          variant="outlined"
+          size="small"
           onClick={() => {
             void authClient.signOut().then(() => {
               void navigate({to: '/login'});
             });
           }}
-          className="flex-1 h-9 px-4 text-sm font-medium bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          sx={{
+            minHeight: 36,
+            color: 'common.white',
+            borderColor: 'grey.600',
+            '&:hover': {borderColor: 'grey.500', bgcolor: 'grey.800'},
+          }}
         >
           Sign out
-        </button>
-      </div>
+        </Button>
+      </Stack>
     );
   } else {
     return (
-      <Link
-        to="/login"
-        search={{redirect: '/'}}
-        className="h-9 px-4 text-sm font-medium bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors inline-flex items-center"
-      >
-        Sign in
-      </Link>
+      <Box>
+        <Link to="/login" search={{redirect: '/'}}>
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{
+              minHeight: 36,
+              color: 'common.white',
+              borderColor: 'grey.600',
+              '&:hover': {borderColor: 'grey.500', bgcolor: 'grey.800'},
+            }}
+          >
+            Sign in
+          </Button>
+        </Link>
+      </Box>
     );
   }
 };

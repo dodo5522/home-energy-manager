@@ -1,4 +1,18 @@
-import {Link} from '@tanstack/react-router';
+import {
+  AppBar,
+  Box,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Skeleton,
+  Toolbar,
+  Typography,
+} from '@mui/material';
+import {Link, useNavigate} from '@tanstack/react-router';
 import {Home, Menu, Network, X} from 'lucide-react';
 import {useState} from 'react';
 
@@ -6,99 +20,132 @@ import {authClient} from '#/lib/auth-client';
 import BetterAuthHeader from './HeaderUser.tsx';
 
 const Header = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const {data: session, isPending} = authClient.useSession();
 
   if (!session?.user || isPending) {
     return (
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <div className="h-10 w-10 rounded-lg bg-gray-800 animate-pulse"/>
-        <h1 className="ml-4 text-xl font-semibold">
-          <img
-            src="/tanstack-word-logo-white.svg"
-            alt="TanStack Logo"
-            className="h-10"
+      <AppBar position="fixed" elevation={4} sx={{bgcolor: 'grey.900'}}>
+        <Toolbar sx={{minHeight: 72}}>
+          <Skeleton
+            variant="rounded"
+            width={40}
+            height={40}
+            sx={{bgcolor: 'grey.900'}}
           />
-        </h1>
-      </header>
+          <Box sx={{ml: 2, display: 'inline-flex', alignItems: 'center'}}>
+            <Box
+              component="img"
+              src="/tanstack-word-logo-white.svg"
+              alt="TanStack Logo"
+              sx={{height: 40}}
+            />
+          </Box>
+        </Toolbar>
+      </AppBar>
     );
   }
 
+  const handleNavigate = (to: string) => {
+    setIsOpen(false);
+    void navigate({to});
+  };
+
   return (
     <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu size={24}/>
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
-          </Link>
-        </h1>
-      </header>
+      <AppBar position="fixed" elevation={4} sx={{bgcolor: 'grey.900'}}>
+        <Toolbar sx={{minHeight: 72}}>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            onClick={() => setIsOpen(true)}
+            aria-label="Open menu"
+            sx={{mr: 1}}
+          >
+            <Menu size={24}/>
+          </IconButton>
+          <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+            <Link to="/">
+              <Box
+                component="img"
+                src="/tanstack-word-logo-white.svg"
+                alt="TanStack Logo"
+                sx={{height: 40}}
+              />
+            </Link>
+          </Box>
+        </Toolbar>
+      </AppBar>
 
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <Drawer
+        anchor="left"
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 280,
+              bgcolor: 'grey.900',
+              color: 'common.white',
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          },
+        }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
-          <button
-            type="button"
+        <Box
+          sx={{
+            px: 2,
+            py: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: 1,
+            borderColor: 'grey.700',
+          }}
+        >
+          <Typography variant="h6" component="h2" sx={{fontWeight: 700}}>
+            Menu
+          </Typography>
+          <IconButton
+            size="large"
             onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             aria-label="Close menu"
+            sx={{color: 'inherit'}}
           >
             <X size={24}/>
-          </button>
-        </div>
+          </IconButton>
+        </Box>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
+        <List sx={{px: 1, py: 1}}>
+          <ListItemButton
+            onClick={() => handleNavigate('/')}
+            sx={{borderRadius: 1, mb: 0.5}}
           >
-            <Home size={20}/>
-            <span className="font-medium">Home</span>
-          </Link>
+            <ListItemIcon sx={{color: 'inherit', minWidth: 36}}>
+              <Home size={20}/>
+            </ListItemIcon>
+            <ListItemText primary="Home"/>
+          </ListItemButton>
 
-          {/* Demo Links Start */}
-
-          <Link
-            to="/demo/tanstack-query"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
+          <ListItemButton
+            onClick={() => handleNavigate('/demo/tanstack-query')}
+            sx={{borderRadius: 1, mb: 0.5}}
           >
-            <Network size={20}/>
-            <span className="font-medium">TanStack Query</span>
-          </Link>
+            <ListItemIcon sx={{color: 'inherit', minWidth: 36}}>
+              <Network size={20}/>
+            </ListItemIcon>
+            <ListItemText primary="TanStack Query"/>
+          </ListItemButton>
+        </List>
 
-          {/* Demo Links End */}
-        </nav>
-
-        <div className="p-4 border-t border-gray-700 bg-gray-800 flex flex-col gap-2">
+        <Divider sx={{borderColor: 'grey.700', mt: 'auto'}}/>
+        <Box sx={{p: 2}}>
           <BetterAuthHeader/>
-        </div>
-      </aside>
+        </Box>
+      </Drawer>
     </>
   );
 };

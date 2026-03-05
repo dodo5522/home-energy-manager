@@ -9,6 +9,7 @@ import {
   ListItemIcon,
   ListItemText,
   Skeleton,
+  styled,
   Toolbar,
   Typography,
 } from '@mui/material';
@@ -19,6 +20,8 @@ import {useState} from 'react';
 import {authClient} from '#/lib/auth-client';
 import BetterAuthHeader from './HeaderUser.tsx';
 
+const Offset = styled('div')(({theme}) => theme.mixins.toolbar);
+
 const Header = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -26,24 +29,27 @@ const Header = () => {
 
   if (!session?.user || isPending) {
     return (
-      <AppBar position="fixed" elevation={4} sx={{bgcolor: 'grey.900'}}>
-        <Toolbar sx={{minHeight: 72}}>
-          <Skeleton
-            variant="rounded"
-            width={40}
-            height={40}
-            sx={{bgcolor: 'grey.900'}}
-          />
-          <Box sx={{ml: 2, display: 'inline-flex', alignItems: 'center'}}>
-            <Box
-              component="img"
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              sx={{height: 40}}
+      <>
+        <AppBar position="sticky" elevation={4} sx={{bgcolor: 'grey.900'}}>
+          <Toolbar sx={{minHeight: 72}}>
+            <Skeleton
+              variant="rounded"
+              width={40}
+              height={40}
+              sx={{bgcolor: 'grey.900'}}
             />
-          </Box>
-        </Toolbar>
-      </AppBar>
+            <Box sx={{ml: 2, display: 'inline-flex', alignItems: 'center'}}>
+              <Box
+                component="img"
+                src="/tanstack-word-logo-white.svg"
+                alt="TanStack Logo"
+                sx={{height: 40}}
+              />
+            </Box>
+          </Toolbar>
+        </AppBar>
+        <Offset/>
+      </>
     );
   }
 
@@ -78,6 +84,7 @@ const Header = () => {
           </Box>
         </Toolbar>
       </AppBar>
+      <Offset/>
 
       <Drawer
         anchor="left"

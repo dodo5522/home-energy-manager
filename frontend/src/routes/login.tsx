@@ -100,10 +100,9 @@ const LoginPage = () => {
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={2}>
                 {isSignUp && (
-                  // biome-ignore lint/correctness/useUniqueElementIds: to enable auto fill in browser
                   <TextField
-                    id="name"
                     label="Name"
+                    autoComplete="username"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -111,11 +110,10 @@ const LoginPage = () => {
                     size="small"
                   />
                 )}
-                {/*biome-ignore lint/correctness/useUniqueElementIds: to enable auto fill in browser*/}
                 <TextField
-                  id="email"
                   label="Email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -125,12 +123,13 @@ const LoginPage = () => {
                 <TextField
                   label="Password"
                   type="password"
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   fullWidth
                   size="small"
-                  inputProps={{minLength: 8}}
+                  slotProps={{htmlInput: {minLength: 8}}}
                 />
 
                 {error && <Alert severity="error">{error}</Alert>}

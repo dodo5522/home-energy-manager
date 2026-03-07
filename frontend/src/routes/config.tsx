@@ -11,12 +11,8 @@ import {useQuery} from '@tanstack/react-query';
 import {createFileRoute, Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
 
+import {getLabels} from '#/integrations/home-energy-manager';
 import {authClient} from '#/lib/auth-client.ts';
-
-interface Label {
-  label: string;
-  remark: string;
-}
 
 const TanStackQueryDemo = () => {
   const {data: session} = authClient.useSession();
@@ -26,13 +22,7 @@ const TanStackQueryDemo = () => {
     refetch,
   } = useQuery({
     queryKey: ['labels'],
-    queryFn: async () => {
-      const res = await fetch('http://localhost:8000/generation/labels');
-      if (!res.ok) {
-        throw new Error('Failed to fetch labels');
-      }
-      return (await res.json()) as Label[];
-    },
+    queryFn: getLabels,
   });
 
   if (!session) {

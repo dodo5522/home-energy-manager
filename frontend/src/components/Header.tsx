@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import {Link, useNavigate} from '@tanstack/react-router';
-import {Home, Menu, Network, X} from 'lucide-react';
+import {ChartLine, Menu, Settings, X} from 'lucide-react';
 import {useState} from 'react';
 
 import {authClient} from '#/lib/auth-client';
@@ -93,7 +93,7 @@ const Header = () => {
         slotProps={{
           paper: {
             sx: {
-              width: 280,
+              width: 250,
               bgcolor: 'grey.900',
               color: 'common.white',
               display: 'flex',
@@ -132,19 +132,19 @@ const Header = () => {
             sx={{borderRadius: 1, mb: 0.5}}
           >
             <ListItemIcon sx={{color: 'inherit', minWidth: 36}}>
-              <Home size={20}/>
+              <ChartLine size={20}/>
             </ListItemIcon>
             <ListItemText primary="Home"/>
           </ListItemButton>
 
           <ListItemButton
-            onClick={() => handleNavigate('/demo/tanstack-query')}
+            onClick={() => handleNavigate('/config')}
             sx={{borderRadius: 1, mb: 0.5}}
           >
             <ListItemIcon sx={{color: 'inherit', minWidth: 36}}>
-              <Network size={20}/>
+              <Settings size={20}/>
             </ListItemIcon>
-            <ListItemText primary="TanStack Query"/>
+            <ListItemText primary="Configuration"/>
           </ListItemButton>
         </List>
 

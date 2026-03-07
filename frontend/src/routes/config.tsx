@@ -10,7 +10,6 @@ import {
 import {useQuery} from '@tanstack/react-query';
 import {createFileRoute, Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
-import {useEffect, useState} from 'react';
 
 import {authClient} from '#/lib/auth-client.ts';
 
@@ -20,34 +19,21 @@ interface Label {
 }
 
 const TanStackQueryDemo = () => {
-  const [refresh, setRefresh] = useState(false);
   const {data: session} = authClient.useSession();
   const {
-    data: labels,
-    isLoading,
-    isPending,
+    data: labels = [],
+    isFetching,
+    refetch,
   } = useQuery({
-    queryKey: ['labels', refresh],
-    queryFn: async (): Promise<Label[]> => {
+    queryKey: ['labels'],
+    queryFn: async () => {
       const res = await fetch('http://localhost:8000/generation/labels');
-      setRefresh(false);
-
       if (!res.ok) {
         throw new Error('Failed to fetch labels');
       }
-
-      const labels = (await res.json()) as Label[];
-      console.debug(
-        `Labels: ${labels.map((l) => l.label).join()}, isLoading: ${isLoading}, isPending: ${isPending}`,
-      );
-      return labels;
+      return (await res.json()) as Label[];
     },
-    initialData: [],
   });
-
-  useEffect(() => {
-    setRefresh(false);
-  }, []);
 
   if (!session) {
     return <Navigate to={'/login'} replace/>;
@@ -94,8 +80,8 @@ const TanStackQueryDemo = () => {
             size="large"
             edge="start"
             color="inherit"
-            disabled={refresh}
-            onClick={() => setRefresh(true)}
+            disabled={isFetching}
+            onClick={() => void refetch()}
           >
             <RefreshCw size={14}/>
           </IconButton>

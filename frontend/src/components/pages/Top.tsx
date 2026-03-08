@@ -4,11 +4,11 @@ import {
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Stack,
   Typography,
 } from '@mui/material';
 import {Navigate} from '@tanstack/react-router';
+import {Loading} from '#/components/atoms';
 import {authClient} from '#/lib/auth-client';
 import type {LoginSearch} from '#/types';
 
@@ -20,13 +20,8 @@ const Top = ({search}: TopProps) => {
   const {data: session, isPending} = authClient.useSession();
 
   if (isPending) {
-    return (
-      <Box sx={{display: 'flex', justifyContent: 'center', py: 10}}>
-        <CircularProgress size={24}/>
-      </Box>
-    );
+    return <Loading/>;
   }
-
   if (!session?.user) {
     return <Navigate to="/login" search={search} replace/>;
   }

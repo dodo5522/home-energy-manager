@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import {Navigate} from '@tanstack/react-router';
 import {type SubmitEvent, useState} from 'react';
+import {Loading} from '#/components/atoms';
 import {authClient} from '#/lib/auth-client';
 
 interface LogInProps {
@@ -27,13 +28,8 @@ const LogIn = ({redirectTo}: LogInProps) => {
   const [loading, setLoading] = useState(false);
 
   if (isPending) {
-    return (
-      <Box sx={{display: 'flex', justifyContent: 'center', py: 10}}>
-        <CircularProgress size={24}/>
-      </Box>
-    );
+    return <Loading/>;
   }
-
   if (session?.user) {
     return <Navigate to={redirectTo} replace/>;
   }

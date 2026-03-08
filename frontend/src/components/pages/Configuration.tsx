@@ -10,7 +10,7 @@ import {
 import {useQuery} from '@tanstack/react-query';
 import {Navigate} from '@tanstack/react-router';
 import {RefreshCw} from 'lucide-react';
-
+import {Loading} from '#/components/atoms';
 import {getLabels} from '#/integrations/home-energy-manager';
 import {authClient} from '#/lib/auth-client.ts';
 import type {LoginSearch} from '#/types';
@@ -24,14 +24,18 @@ const Configuration = ({search}: ConfigurationProps) => {
   const {
     data: labels = [],
     isFetching,
+    isPending,
     refetch,
   } = useQuery({
     queryKey: ['labels'],
     queryFn: getLabels,
   });
 
-  if (!session) {
-    return <Navigate to={'/login'} search={search} replace/>;
+  if (isPending) {
+    return <Loading/>;
+  }
+  if (!session?.user) {
+    return <Navigate to="/login" search={search} replace/>;
   }
 
   return (

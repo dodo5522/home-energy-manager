@@ -1,6 +1,6 @@
 # 設計メモ
 
-最終更新日: 2026-03-01
+最終更新日: 2026-03-07
 
 ## 1. 目的
 
@@ -60,6 +60,56 @@ flowchart TD
 
 - SSR 初期表示時点でセッション表示を確定させたい場合、`useSession` のみではなくサーバ側ミドルウェアやサーバ処理でのセッション解決を併用する。
 - 現状はヘッダー側でも `useSession` を呼んでいるため、クライアント遷移時はセッション状態が既に解決済みであるケースが多い。
+
+### 3.5 `routes/api` と `integrations/api` の役割分担
+
+- `frontend/src/routes/api/` は TanStack Start が外部に公開する HTTP エンドポイントを置く場所である。
+- `frontend/src/integrations/` は認証や外部 API 連携など、アプリ内部から利用する基盤コードを置く場所である。
+- そのため、`routes/api` は「外向きの入口」、`integrations/api` は「内部から使う API クライアント」という役割で分ける。
+- Better Auth のように frontend 側で HTTP ルートを提供するものは `routes/api/auth/` に置く。
+- Rust backend を呼び出すための `getLabels()` や `postHistory()` のような関数は `integrations/api/` に置く。
+
+```mermaid
+flowchart LR
+    A["Browser"] --> B["/api/..."]
+    B --> C["frontend/src/routes/api/..."]
+    C --> D["TanStack Start server handler"]
+
+    E["Route component / hook"] --> F["frontend/src/integrations/api/..."]
+    F --> G["fetch('http://backend/...')"]
+    G --> H["Rust backend"]
+```
+
+### 3.6 `integrations/api` は server 専用ではない
+
+- `integrations/api` のモジュールは、server 専用の特殊機構ではなく通常の TypeScript モジュールである。
+- そのため、どこから import されたかによって実行環境が決まる。
+- クライアント画面から import されればブラウザ用バンドルに含まれ、ブラウザ上で実行される。
+- サーバ処理から import されれば、TanStack Start のサーバプロセス上で実行される。
+- したがって `integrations/api` には、秘密鍵や server 専用環境変数のような「ブラウザへ出してはいけない処理」は置かない。
+
+```mermaid
+flowchart TB
+    A["同じ getLabels() 関数"] --> B{"どこから import されたか"}
+    B -->|Route component| C["Browser bundle に含まれる"]
+    C --> D["Browser で fetch() 実行"]
+    B -->|Server code| E["Node.js process で実行"]
+    E --> F["Server から fetch() 実行"]
+```
+
+### 3.7 現時点の Rust API client 方針
+
+- Rust backend 向けの HTTP 呼び出しは、route component 内へ `fetch(...)` を直書きせず `integrations/api` に集約する。
+- まずは以下のような薄い構成から始める。
+    - `frontend/src/integrations/api/client.ts`
+        - `fetchJson` などの共通 HTTP ラッパ
+        - base URL、共通 header、共通エラー処理
+    - `frontend/src/integrations/api/generation.ts`
+        - `getLabels`, `getUnits`, `postHistory` など API 単位の関数
+    - 必要に応じて `frontend/src/integrations/api/types.ts`
+        - backend DTO の型
+- route 側は `useQuery({ queryKey, queryFn })` に専念し、`queryFn` として `integrations/api` の関数を渡す。
+- BFF 的な中継や認可制御が必要になった場合のみ、`routes/api` にサーバルートを追加して backend との間に挟む。
 
 ## 4. 参考 URL
 

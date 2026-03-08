@@ -1,4 +1,6 @@
 use axum::Router;
+use http::{HeaderValue, Method};
+use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
@@ -7,12 +9,25 @@ mod consumption;
 mod generation;
 mod health;
 
-pub fn route() -> Router {
+fn cors(allowed_origins: Vec<String>) -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(
+            allowed_origins
+                .into_iter()
+                .map(|origin| origin.parse::<HeaderValue>().expect("Invalid origin"))
+                .collect::<Vec<HeaderValue>>(),
+        )
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers(Any)
+}
+
+pub fn route(allowed_origins: Vec<String>) -> Router {
     Router::new()
         .merge(SwaggerUi::new("/docs/swagger").url("/openapi.json", ApiDoc::openapi()))
         .merge(Redoc::with_url("/docs/redoc", ApiDoc::openapi()))
         .nest("/health", health::route())
         .nest("/generation", generation::route())
+        .layer(cors(allowed_origins))
 }
 
 #[derive(OpenApi)]

@@ -1,0 +1,110 @@
+import {
+  Box,
+  IconButton,
+  List,
+  ListItem,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
+import {useQuery} from '@tanstack/react-query';
+import {Navigate} from '@tanstack/react-router';
+import {RefreshCw} from 'lucide-react';
+
+import {getLabels} from '#/integrations/home-energy-manager';
+import {authClient} from '#/lib/auth-client.ts';
+
+const Configuration = () => {
+  const {data: session} = authClient.useSession();
+  const {
+    data: labels = [],
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['labels'],
+    queryFn: getLabels,
+  });
+
+  if (!session) {
+    return <Navigate to={'/login'} replace/>;
+  }
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        px: 2,
+        py: 4,
+        display: 'flex',
+        alignItems: 'start',
+        justifyContent: 'center',
+        color: 'common.white',
+        backgroundImage:
+          'radial-gradient(50% 50% at 95% 5%, #f4a460 0%, #8b4513 70%, #1a0f0a 100%)',
+      }}
+    >
+      <Paper
+        elevation={8}
+        sx={{
+          width: '100%',
+          maxWidth: 768,
+          p: 4,
+          borderRadius: 2,
+          backdropFilter: 'blur(10px)',
+          bgcolor: 'rgba(0, 0, 0, 0.5)',
+          border: '8px solid rgba(0, 0, 0, 0.1)',
+          color: 'common.white',
+        }}
+      >
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="flex-start"
+          spacing={1}
+          mb={2}
+        >
+          <Typography variant="h5" sx={{mb: 2}}>
+            Labels
+          </Typography>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
+            <RefreshCw size={14}/>
+          </IconButton>
+        </Stack>
+        <List sx={{p: 0}}>
+          {labels.map((label) => (
+            <ListItem
+              key={label.label}
+              sx={{
+                mb: 1,
+                borderRadius: 1.5,
+                px: 2,
+                py: 1.25,
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(8px)',
+                boxShadow: 1,
+              }}
+            >
+              <Stack direction="row" spacing={2}>
+                <Typography variant="body1" sx={{color: 'common.white'}}>
+                  {label.label}
+                </Typography>
+                <Typography variant="body1" sx={{color: 'common.white'}}>
+                  {label.remark}
+                </Typography>
+              </Stack>
+            </ListItem>
+          ))}
+        </List>
+      </Paper>
+    </Box>
+  );
+};
+
+export default Configuration;

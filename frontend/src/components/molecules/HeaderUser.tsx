@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@mui/material';
 import {Link, useNavigate} from '@tanstack/react-router';
-import {authClient} from '#/lib/auth-client';
+import {authClient} from '#/lib/auth-client.ts';
 
 const BetterAuthHeader = () => {
   const navigate = useNavigate();

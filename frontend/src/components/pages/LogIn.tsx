@@ -13,7 +13,11 @@ import {Navigate} from '@tanstack/react-router';
 import {type SubmitEvent, useState} from 'react';
 import {authClient} from '#/lib/auth-client';
 
-const LogIn = () => {
+interface LogInProps {
+  redirectTo: string;
+}
+
+const LogIn = ({redirectTo}: LogInProps) => {
   const {data: session, isPending} = authClient.useSession();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -31,7 +35,7 @@ const LogIn = () => {
   }
 
   if (session?.user) {
-    return <Navigate to="/" replace/>;
+    return <Navigate to={redirectTo} replace/>;
   }
 
   const handleSubmit = async (e: SubmitEvent) => {

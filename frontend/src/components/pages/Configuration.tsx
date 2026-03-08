@@ -13,8 +13,13 @@ import {RefreshCw} from 'lucide-react';
 
 import {getLabels} from '#/integrations/home-energy-manager';
 import {authClient} from '#/lib/auth-client.ts';
+import type {LoginSearch} from '#/types';
 
-const Configuration = () => {
+interface ConfigurationProps {
+  search: LoginSearch;
+}
+
+const Configuration = ({search}: ConfigurationProps) => {
   const {data: session} = authClient.useSession();
   const {
     data: labels = [],
@@ -26,7 +31,7 @@ const Configuration = () => {
   });
 
   if (!session) {
-    return <Navigate to={'/login'} replace/>;
+    return <Navigate to={'/login'} search={search} replace/>;
   }
 
   return (

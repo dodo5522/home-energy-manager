@@ -10,8 +10,13 @@ import {
 } from '@mui/material';
 import {Navigate} from '@tanstack/react-router';
 import {authClient} from '#/lib/auth-client';
+import type {LoginSearch} from '#/types';
 
-const Top = () => {
+interface TopProps {
+  search: LoginSearch;
+}
+
+const Top = ({search}: TopProps) => {
   const {data: session, isPending} = authClient.useSession();
 
   if (isPending) {
@@ -23,7 +28,7 @@ const Top = () => {
   }
 
   if (!session?.user) {
-    return <Navigate to="/login" search={{redirect: '/'}} replace/>;
+    return <Navigate to="/login" search={search} replace/>;
   }
 
   return (

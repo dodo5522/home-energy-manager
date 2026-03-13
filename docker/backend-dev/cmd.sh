@@ -8,4 +8,4 @@ cargo-watch \
   --watch Cargo.toml \
   --watch src \
   --watch crates \
-  -x 'run'
+  -x 'run -p home-energy-manager --features debug'

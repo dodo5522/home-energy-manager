@@ -1,6 +1,6 @@
 import type {Label} from './types';
 
-const LABEL_API_URL = `${import.meta.env.BACKEND_BASE_URL}/generation/labels`;
+const LABEL_API_URL = `${import.meta.env.VITE_BACKEND_BASE_URL}/generation/labels`;
 
 export const getLabels = async () => {
   const res = await fetch(LABEL_API_URL, {method: 'GET'});

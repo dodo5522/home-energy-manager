@@ -27,17 +27,14 @@ impl LabelRepositoryTrait for LabelRepository {
         Ok(res.last_insert_id)
     }
 
-    async fn get(&self, label: Option<&str>) -> Result<Vec<LabelEntity>, Error> {
+    async fn get(&self, label: Option<impl AsRef<str> + Send>) -> Result<Vec<LabelEntity>, Error> {
         if let Some(label) = label {
-            let found = Labels::find_by_id(label)
+            let found = Labels::find_by_id(label.as_ref().to_string())
                 .one(&self.db)
                 .await
                 .map_err(Self::map_db_err)?;
-            if let Some(model) = found {
-                Ok(vec![LabelEntity {
-                    label: model.label,
-                    remark: Some(model.remark),
-                }])
+            if let Some(label) = found {
+                Ok(vec![label.into()])
             } else {
                 Ok(vec![])
             }
@@ -48,12 +45,7 @@ impl LabelRepositoryTrait for LabelRepository {
                 .map_err(Self::map_db_err)?;
             let records = labels
                 .into_iter()
-                .map(|model| {
-                    Ok(LabelEntity {
-                        label: model.label,
-                        remark: Some(model.remark),
-                    })
-                })
+                .map(|label| Ok(label.into()))
                 .collect::<Result<_, _>>()?;
             Ok(records)
         }
@@ -72,15 +64,15 @@ impl LabelRepositoryTrait for LabelRepository {
         })
     }
 
-    async fn delete(&self, label: &str) -> Result<(), Error> {
-        let result = Labels::delete_by_id(label.to_owned())
+    async fn delete(&self, label: impl AsRef<str> + Send) -> Result<(), Error> {
+        let result = Labels::delete_by_id(label.as_ref().to_string())
             .exec(&self.db)
             .await
             .map_err(Self::map_db_err)?;
         if result.rows_affected == 1 {
             Ok(())
         } else {
-            Err(Error::DbError(label.to_owned()))
+            Err(Error::DbError(label.as_ref().to_string()))
         }
     }
 }

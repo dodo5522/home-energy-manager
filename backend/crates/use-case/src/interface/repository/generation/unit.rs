@@ -12,7 +12,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Unit, GenerationRepositoryError>` - 成功時は登録後の単位を返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &UnitEntity) -> Result<Unit, GenerationError>;
+    async fn add(&self, e: &UnitEntity) -> Result<Unit, GenerationError>;
 
     /// 単位を取得する
     ///
@@ -20,17 +20,18 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Vec<UnitRecord>, GenerationRepositoryError>` - 成功時は単位のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self) -> Result<Vec<UnitEntity>, GenerationError>;
+    async fn get(&self, unit: Option<impl AsRef<&str>>)
+    -> Result<Vec<UnitEntity>, GenerationError>;
 
-    /// 単位が存在するか確認する
+    /// 単位を更新する
     ///
     /// # Arguments
-    /// * `unit` - 削除する単位
+    /// * `entity` - 更新する単位のエンティティ
     /// # Returns
-    /// * `Result<bool, GenerationRepositoryError>` - 成功時は存在するかどうかを返し、失敗時はエラーを返す
+    /// * `Result<UnitEntity, GenerationRepositoryError>` - 成功時は値を返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn has(&self, unit: &Unit) -> Result<bool, GenerationError>;
+    async fn update(&self, e: &UnitEntity) -> Result<UnitEntity, GenerationError>;
 
     /// 単位を削除する
     ///
@@ -40,5 +41,5 @@ pub trait UnitRepositoryTrait {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, unit: &Unit) -> Result<(), GenerationError>;
+    async fn delete(&self, unit: impl AsRef<&str>) -> Result<(), GenerationError>;
 }

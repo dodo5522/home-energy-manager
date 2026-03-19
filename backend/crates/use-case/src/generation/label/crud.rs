@@ -1,7 +1,6 @@
 use super::dto::LabelInOut;
 use crate::interface::{LabelRepositoryTrait, UnitOfWorkFactoryTrait, UnitOfWorkTrait};
-use std::io::{Error, ErrorKind};
-use std::marker::PhantomData;
+use std::{io::Error, marker::PhantomData};
 
 pub struct LabelUseCase<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait> {
     repo: R,
@@ -46,7 +45,7 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
     }
 
     pub async fn get_all(self) -> Result<Vec<LabelInOut>, Error> {
-        let labels = self.repo.get(None).await.map_err(Error::other)?;
+        let labels = self.repo.get(None::<&str>).await.map_err(Error::other)?;
         Ok(labels.into_iter().map(|u| u.into()).collect())
     }
 

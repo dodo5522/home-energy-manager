@@ -1,5 +1,9 @@
-use super::{Unit, UnitError};
+use super::error::UnitError;
 use std::fmt;
+
+/// 物理量の単位を表す値オブジェクト
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Unit(String);
 
 impl Unit {
     /// 物理量単位の値オブジェクトを生成する

@@ -20,8 +20,7 @@ pub trait UnitRepositoryTrait {
     /// * `Result<Vec<UnitRecord>, GenerationRepositoryError>` - 成功時は単位のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self, unit: Option<impl AsRef<&str>>)
-    -> Result<Vec<UnitEntity>, GenerationError>;
+    async fn get(&self, unit: Option<&Unit>) -> Result<Vec<UnitEntity>, GenerationError>;
 
     /// 単位を更新する
     ///
@@ -41,5 +40,5 @@ pub trait UnitRepositoryTrait {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, unit: impl AsRef<&str>) -> Result<(), GenerationError>;
+    async fn delete(&self, unit: &Unit) -> Result<(), GenerationError>;
 }

@@ -1,5 +1,6 @@
 use super::dto::UnitInOut;
 use crate::interface::UnitRepositoryTrait;
+use layer_domain::value_object::Unit;
 use std::io::Error;
 
 pub struct GetUnitsUseCase<R: UnitRepositoryTrait> {
@@ -12,7 +13,7 @@ impl<R: UnitRepositoryTrait> GetUnitsUseCase<R> {
     }
 
     pub async fn get(self) -> Result<Vec<UnitInOut>, Error> {
-        let units = self.repo.get().await.map_err(Error::other)?;
+        let units = self.repo.get(None::<&Unit>).await.map_err(Error::other)?;
         Ok(units.into_iter().map(|u| u.into()).collect())
     }
 }

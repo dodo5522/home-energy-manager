@@ -49,15 +49,6 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
         Ok(labels.into_iter().map(|u| u.into()).collect())
     }
 
-    pub async fn has(self, label: impl AsRef<str>) -> Result<bool, Error> {
-        let labels = self
-            .repo
-            .get(Some(label.as_ref()))
-            .await
-            .map_err(Error::other)?;
-        Ok(!labels.is_empty())
-    }
-
     pub async fn update(self, input: LabelInOut) -> Result<(), Error> {
         let _ = self
             .repo

@@ -42,7 +42,10 @@ pub fn route(allowed_origins: Vec<String>) -> Router {
     generation::label::update_label,
     generation::sub_system::post_sub_system,
     generation::sub_system::get_sub_systems,
+    generation::unit::delete_unit,
     generation::unit::post_unit,
+    generation::unit::get_unit,
     generation::unit::get_units,
+    generation::unit::update_unit,
 ))]
 pub(crate) struct ApiDoc {}

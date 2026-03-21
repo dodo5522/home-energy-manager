@@ -1,4 +1,4 @@
-use super::{get::LabelItem, post::LabelPostRequest, update::UpdateLabelQuery};
+use super::{get::LabelItem, post::LabelPostRequest, put::UpdateLabelQuery};
 use crate::di::db::get_connection;
 use crate::error_mapper::{map_internal_server_error, map_not_found_error};
 use crate::errors::ErrorResponse;
@@ -60,7 +60,7 @@ pub async fn post_label(
         ("label", description = "label name"),
     ),
     responses(
-        (status = 200, description = "OK"),
+        (status = 204, description = "OK"),
         (status = 400, description = "Bad request", body = ErrorResponse),
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
@@ -69,16 +69,18 @@ pub async fn update_label(
     Path(label): Path<String>,
     Query(query): Query<UpdateLabelQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let label = LabelInOut {
-        label: label,
-        remark: query.remark,
-    };
     let db = get_connection().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
     );
-    let _ = use_case.update(label).await.map_err(map_not_found_error)?;
+    let _ = use_case
+        .update(LabelInOut {
+            label,
+            remark: query.remark,
+        })
+        .await
+        .map_err(map_not_found_error)?;
     Ok(StatusCode::OK)
 }
 
@@ -134,14 +136,14 @@ pub async fn get_label(
         UnitOfWorkFactory::new(db.clone()),
     );
     let found = use_case
-        .get(label.to_owned())
+        .get(&label)
         .await
         .map_err(map_internal_server_error)?;
 
     if let Some(found_label) = found {
         Ok((StatusCode::OK, Json(found_label.into())))
     } else {
-        Err(map_not_found_error(format!("Label '{}' not found", label)))
+        Err(map_not_found_error(format!("Label '{label}' not found")))
     }
 }
 
@@ -154,7 +156,7 @@ pub async fn get_label(
         ("label", description = "label name"),
     ),
     responses(
-        (status = 204, description = "OK", body = LabelItem),
+        (status = 204, description = "Deleted"),
         (status = 404, description = "Not Found", body = ErrorResponse),
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )

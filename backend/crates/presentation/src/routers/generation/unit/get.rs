@@ -1,4 +1,4 @@
-use layer_use_case::unit::UnitInOut;
+use layer_domain::{entity::UnitEntity, value_object::UnitError};
 use serde::Serialize;
 use utoipa::ToSchema;
 
@@ -10,20 +10,53 @@ pub struct UnitItem {
     pub remark: String,
 }
 
-impl From<UnitInOut> for UnitItem {
-    fn from(unit_in_out: UnitInOut) -> Self {
+impl From<UnitEntity> for UnitItem {
+    fn from(u: UnitEntity) -> Self {
         Self {
-            unit: unit_in_out.unit.into(),
-            remark: unit_in_out.remark,
+            unit: u.unit.into(),
+            remark: u.remark,
         }
     }
 }
 
-impl From<UnitItem> for UnitInOut {
-    fn from(unit_item: UnitItem) -> Self {
+impl From<&UnitEntity> for UnitItem {
+    fn from(u: &UnitEntity) -> Self {
+        let UnitEntity { unit, remark } = u;
+
         Self {
-            unit: unit_item.unit.try_into().unwrap(),
-            remark: unit_item.remark,
+            unit: unit.into(),
+            remark: remark.into(),
         }
+    }
+}
+
+impl TryFrom<UnitItem> for UnitEntity {
+    type Error = UnitError;
+
+    fn try_from(u: UnitItem) -> Result<Self, Self::Error> {
+        let UnitItem { unit, remark } = u;
+
+        Ok(Self {
+            unit: unit
+                .clone()
+                .try_into()
+                .map_err(|_| UnitError::Invalid(unit))?,
+            remark,
+        })
+    }
+}
+
+impl TryFrom<&UnitItem> for UnitEntity {
+    type Error = UnitError;
+
+    fn try_from(u: &UnitItem) -> Result<Self, Self::Error> {
+        let UnitItem { unit, remark } = u;
+
+        Ok(Self {
+            unit: unit
+                .try_into()
+                .map_err(|_| UnitError::Invalid(unit.clone()))?,
+            remark: remark.to_owned(),
+        })
     }
 }

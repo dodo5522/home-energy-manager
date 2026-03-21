@@ -1,6 +1,6 @@
 mod endpoints;
 mod get;
 mod post;
-mod update;
+mod put;
 
 pub use endpoints::*;

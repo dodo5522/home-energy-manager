@@ -64,6 +64,14 @@ impl TryFrom<String> for Unit {
     }
 }
 
+impl TryFrom<&String> for Unit {
+    type Error = UnitError;
+
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 #[cfg(test)]
 mod tests_unit {
     use super::*;

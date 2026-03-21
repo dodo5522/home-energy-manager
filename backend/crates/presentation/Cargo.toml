@@ -23,3 +23,6 @@ path = "../infra-db"
 
 [dependencies.layer-use-case]
 path = "../use-case"
+
+[dependencies.layer-domain]
+path = "../domain"

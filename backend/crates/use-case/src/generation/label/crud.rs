@@ -1,5 +1,5 @@
-use super::dto::LabelInOut;
 use crate::interface::{LabelRepositoryTrait, UnitOfWorkFactoryTrait, UnitOfWorkTrait};
+use layer_domain::entity::LabelEntity;
 use std::{io::Error, marker::PhantomData};
 
 pub struct LabelUseCase<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait> {
@@ -19,7 +19,7 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
         }
     }
 
-    pub async fn create(self, input: LabelInOut) -> Result<(), Error> {
+    pub async fn create(self, input: LabelEntity) -> Result<(), Error> {
         let uow = self.factory.begin().await?;
         if let Err(e) = self.repo.add(&input.into()).await {
             uow.rollback().await?;
@@ -30,7 +30,7 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
         }
     }
 
-    pub async fn get(self, label: impl AsRef<str>) -> Result<Option<LabelInOut>, Error> {
+    pub async fn get(self, label: impl AsRef<str>) -> Result<Option<LabelEntity>, Error> {
         let labels = self
             .repo
             .get(Some(label.as_ref()))
@@ -44,12 +44,12 @@ impl<U: UnitOfWorkTrait, F: UnitOfWorkFactoryTrait<U>, R: LabelRepositoryTrait>
         }
     }
 
-    pub async fn get_all(self) -> Result<Vec<LabelInOut>, Error> {
+    pub async fn get_all(self) -> Result<Vec<LabelEntity>, Error> {
         let labels = self.repo.get(None::<&str>).await.map_err(Error::other)?;
         Ok(labels.into_iter().map(|u| u.into()).collect())
     }
 
-    pub async fn update(self, input: LabelInOut) -> Result<(), Error> {
+    pub async fn update(self, input: LabelEntity) -> Result<(), Error> {
         let _ = self
             .repo
             .update(&input.into())

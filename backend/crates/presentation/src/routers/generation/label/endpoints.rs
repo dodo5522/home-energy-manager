@@ -7,9 +7,10 @@ use axum::{
     extract::{Path, Query},
     http::StatusCode,
 };
+use layer_domain::entity::LabelEntity;
 use layer_infra_db::repository::label::LabelRepository;
 use layer_infra_db::unit_of_work::UnitOfWorkFactory;
-use layer_use_case::label::{LabelInOut, LabelUseCase};
+use layer_use_case::label::LabelUseCase;
 
 #[utoipa::path(
     post,
@@ -26,9 +27,9 @@ use layer_use_case::label::{LabelInOut, LabelUseCase};
 pub async fn post_label(
     Json(body): Json<LabelPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let label = LabelInOut {
+    let label = LabelEntity {
         label: body.label,
-        remark: body.remark,
+        remark: Some(body.remark),
     };
     println!("Inserting label record: {:?}", label);
 
@@ -75,9 +76,9 @@ pub async fn update_label(
         UnitOfWorkFactory::new(db.clone()),
     );
     let _ = use_case
-        .update(LabelInOut {
+        .update(LabelEntity {
             label,
-            remark: query.remark,
+            remark: Some(query.remark),
         })
         .await
         .map_err(map_not_found_error)?;
@@ -106,11 +107,11 @@ pub async fn get_labels()
         .get_all()
         .await
         .map_err(map_internal_server_error)?;
-
-    Ok((
-        StatusCode::OK,
-        Json(labels.into_iter().map(LabelItem::from).collect()),
-    ))
+    let items = labels
+        .into_iter()
+        .map(|e| LabelItem::try_from(e).map_err(map_internal_server_error))
+        .collect::<Result<Vec<LabelItem>, _>>()?;
+    Ok((StatusCode::OK, Json(items)))
 }
 
 #[utoipa::path(
@@ -141,7 +142,10 @@ pub async fn get_label(
         .map_err(map_internal_server_error)?;
 
     if let Some(found_label) = found {
-        Ok((StatusCode::OK, Json(found_label.into())))
+        Ok((
+            StatusCode::OK,
+            Json(found_label.try_into().map_err(map_internal_server_error)?),
+        ))
     } else {
         Err(map_not_found_error(format!("Label '{label}' not found")))
     }

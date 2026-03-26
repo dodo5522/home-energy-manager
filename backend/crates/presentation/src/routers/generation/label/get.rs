@@ -1,5 +1,6 @@
-use layer_use_case::label::LabelInOut;
+use layer_domain::entity::LabelEntity;
 use serde::Serialize;
+use std::io::ErrorKind;
 use utoipa::ToSchema;
 
 #[derive(Serialize, ToSchema)]
@@ -10,20 +11,24 @@ pub struct LabelItem {
     pub remark: String,
 }
 
-impl From<LabelInOut> for LabelItem {
-    fn from(label_in_out: LabelInOut) -> Self {
-        Self {
-            label: label_in_out.label,
-            remark: label_in_out.remark,
-        }
+impl TryFrom<LabelEntity> for LabelItem {
+    type Error = std::io::Error;
+
+    fn try_from(e: LabelEntity) -> Result<Self, Self::Error> {
+        Ok(Self {
+            label: e.label,
+            remark: e
+                .remark
+                .ok_or_else(|| Self::Error::from(ErrorKind::InvalidInput))?,
+        })
     }
 }
 
-impl From<LabelItem> for LabelInOut {
-    fn from(label_item: LabelItem) -> Self {
+impl From<LabelItem> for LabelEntity {
+    fn from(i: LabelItem) -> Self {
         Self {
-            label: label_item.label,
-            remark: label_item.remark,
+            label: i.label,
+            remark: Some(i.remark),
         }
     }
 }

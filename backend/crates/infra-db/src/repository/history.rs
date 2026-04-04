@@ -23,7 +23,7 @@ impl HistoryRepository {
 
 #[async_trait::async_trait]
 impl HistoryRepositoryTrait for HistoryRepository {
-    async fn add(&self, new: &entity::HistoryEntity) -> Result<entity::HistoryId, Error> {
+    async fn add(&self, new: &entity::HistoryEntity) -> Result<i64, Error> {
         let history = ActiveModel {
             unit: ActiveValue::Set(new.unit.to_owned().into()),
             group: ActiveValue::Set(new.sub_system.to_owned()),
@@ -38,10 +38,10 @@ impl HistoryRepositoryTrait for HistoryRepository {
             .await
             .map_err(Self::map_db_err)?;
 
-        Ok(entity::HistoryId(res.last_insert_id))
+        Ok(res.last_insert_id)
     }
 
-    async fn get(&self, id: entity::HistoryId) -> Result<Option<entity::HistoryEntity>, Error> {
+    async fn get(&self, id: i64) -> Result<Option<entity::HistoryEntity>, Error> {
         let h = Histories::find_by_id::<i64>(id.into())
             .one(&self.db)
             .await
@@ -64,7 +64,7 @@ impl HistoryRepositoryTrait for HistoryRepository {
         }
     }
 
-    async fn delete(&self, id: entity::HistoryId) -> Result<(), Error> {
+    async fn delete(&self, id: i64) -> Result<(), Error> {
         Err(Error::NotImplemented(
             "HistoryRepository::delete()".to_string(),
         ))

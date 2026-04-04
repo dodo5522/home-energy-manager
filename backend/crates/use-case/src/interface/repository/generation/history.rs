@@ -1,5 +1,5 @@
 use super::errors::GenerationError;
-use layer_domain::entity::{HistoryEntity, HistoryId};
+use layer_domain::entity::HistoryEntity;
 
 /// 発電状況を記録するためのリポジトリインターフェース
 #[async_trait::async_trait]
@@ -12,7 +12,7 @@ pub trait HistoryRepositoryTrait {
     /// * `Result<EnergyRecord, GenerationRepositoryError>` - 成功時は登録後のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 記録に失敗した場合のエラー
-    async fn add(&self, new: &HistoryEntity) -> Result<HistoryId, GenerationError>;
+    async fn add(&self, new: &HistoryEntity) -> Result<i64, GenerationError>;
 
     /// 発電状況を取得する
     ///
@@ -22,7 +22,7 @@ pub trait HistoryRepositoryTrait {
     /// * `Result<Option<HistoryEntity>, GenerationRepositoryError>` - 成功時は発電状況のエンティティを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 取得に失敗した場合のエラー
-    async fn get(&self, id: HistoryId) -> Result<Option<HistoryEntity>, GenerationError>;
+    async fn get(&self, id: i64) -> Result<Option<HistoryEntity>, GenerationError>;
 
     /// 発電状況を削除する
     ///
@@ -32,5 +32,5 @@ pub trait HistoryRepositoryTrait {
     /// * `Result<(), GenerationRepositoryError>` - 成功時は空のタプルを返し、失敗時はエラーを返す
     /// # Errors
     /// * `GenerationRepositoryError` - 削除に失敗した場合のエラー
-    async fn delete(&self, id: HistoryId) -> Result<(), GenerationError>;
+    async fn delete(&self, id: i64) -> Result<(), GenerationError>;
 }

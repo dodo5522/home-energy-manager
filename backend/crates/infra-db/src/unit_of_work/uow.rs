@@ -22,7 +22,7 @@ impl UnitOfWorkTrait for UnitOfWork {
         Ok(())
     }
 
-    async fn rollback(self) -> Result<(), std::io::Error> {
+    async fn rollback(self) -> Result<(), Error> {
         self.tx
             .rollback()
             .await

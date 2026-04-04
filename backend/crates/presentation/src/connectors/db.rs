@@ -6,7 +6,7 @@ use std::io::Error;
 ///
 /// # Returns
 /// A `DatabaseConnection` instance connected to the database specified in the environment variables.
-pub async fn get_connection() -> Result<DatabaseConnection, Error> {
+pub async fn get() -> Result<DatabaseConnection, Error> {
     let user = var("DB_OPERATOR_NAME").map_err(Error::other)?;
     let password = var("DB_OPERATOR_PASSWORD").map_err(Error::other)?;
     layer_infra_db::get_connection(&user, &password)

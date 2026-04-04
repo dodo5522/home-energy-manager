@@ -1,6 +1,6 @@
 use super::get::SubSystemItem;
 use super::post::SubSystemPostRequest;
-use crate::di::db::get_connection;
+use crate::connectors::db::get;
 use crate::error_mapper::map_internal_server_error;
 use crate::errors::ErrorResponse;
 use axum::{Json, http::StatusCode};
@@ -29,7 +29,7 @@ pub async fn post_sub_system(
     };
     println!("Inserting sub system record: {:?}", system);
 
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = CreateSubSystemUseCase::new(
         SubSystemRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -60,7 +60,7 @@ pub async fn post_sub_system(
 )]
 pub async fn get_sub_systems()
 -> Result<(StatusCode, Json<Vec<SubSystemItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = GetSubSystemsUseCase::new(SubSystemRepository::new(db.clone()));
     let systems = use_case.get().await.map_err(map_internal_server_error)?;
 

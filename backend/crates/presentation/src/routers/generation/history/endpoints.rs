@@ -1,6 +1,6 @@
 use super::get::Response as GetResponse;
 use super::post::{HistoryPostRequest, HistoryPostResponse};
-use crate::di::db::get_connection;
+use crate::connectors::db::get;
 use crate::error_mapper::{map_bad_request, map_internal_server_error};
 use crate::errors::ErrorResponse;
 use axum::{Json, extract::Path, http::StatusCode};
@@ -32,7 +32,7 @@ pub async fn post_history(
     };
     println!("Inserting history record: {:?}", energy);
 
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = CreateHistoryUseCase::new(
         HistoryRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -68,7 +68,7 @@ pub async fn post_history(
 pub async fn get_history(
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = GetHistoryUseCase::new(
         HistoryRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),

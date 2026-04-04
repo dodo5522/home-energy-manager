@@ -1,6 +1,6 @@
 use super::get::UnitItem;
 use super::{post::UnitPostRequest, put::UpdateUnitQuery};
-use crate::di::db::get_connection;
+use crate::connectors::db::get;
 use crate::error_mapper::{map_bad_request, map_internal_server_error, map_not_found_error};
 use crate::errors::ErrorResponse;
 use axum::{
@@ -35,7 +35,7 @@ pub async fn post_unit(
     };
     println!("Inserting unit record: {:?}", unit);
 
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
         UnitRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -73,7 +73,7 @@ pub async fn update_unit(
     Path(unit): Path<String>,
     Query(query): Query<UpdateUnitQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
         UnitRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -101,7 +101,7 @@ pub async fn update_unit(
 )]
 pub async fn get_units()
 -> Result<(StatusCode, Json<Vec<UnitItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
         UnitRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -134,7 +134,7 @@ pub async fn get_units()
 pub async fn get_unit(
     Path(unit): Path<String>,
 ) -> Result<(StatusCode, Json<UnitItem>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
         UnitRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -168,7 +168,7 @@ pub async fn get_unit(
 pub async fn delete_unit(
     Path(unit): Path<String>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
         UnitRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),

@@ -1,5 +1,5 @@
 use super::{get::LabelItem, post::LabelPostRequest, put::UpdateLabelQuery};
-use crate::di::db::get_connection;
+use crate::connectors::db::get;
 use crate::error_mapper::{map_internal_server_error, map_not_found_error};
 use crate::errors::ErrorResponse;
 use axum::{
@@ -33,7 +33,7 @@ pub async fn post_label(
     };
     println!("Inserting label record: {:?}", label);
 
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -70,7 +70,7 @@ pub async fn update_label(
     Path(label): Path<String>,
     Query(query): Query<UpdateLabelQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -98,7 +98,7 @@ pub async fn update_label(
 )]
 pub async fn get_labels()
 -> Result<(StatusCode, Json<Vec<LabelItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -131,7 +131,7 @@ pub async fn get_labels()
 pub async fn get_label(
     Path(label): Path<String>,
 ) -> Result<(StatusCode, Json<LabelItem>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),
@@ -168,7 +168,7 @@ pub async fn get_label(
 pub async fn delete_label(
     Path(label): Path<String>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
+    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
         LabelRepository::new(db.clone()),
         UnitOfWorkFactory::new(db.clone()),

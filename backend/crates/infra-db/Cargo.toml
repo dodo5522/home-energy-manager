@@ -8,3 +8,8 @@ async-trait.workspace = true
 sea-orm.workspace = true
 layer-domain = { path = "../domain" }
 layer-use-case = { path = "../use-case" }
+
+[dev-dependencies]
+mockall.workspace = true
+rstest.workspace = true
+tokio.workspace = true

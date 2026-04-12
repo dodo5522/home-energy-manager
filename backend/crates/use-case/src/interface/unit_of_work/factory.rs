@@ -2,7 +2,7 @@ use super::UnitOfWorkTrait;
 use std::io::Error;
 
 #[async_trait::async_trait]
-pub trait UnitOfWorkFactoryTrait<U: UnitOfWorkTrait>: Send + Sync {
+pub trait UnitOfWorkFactoryTrait<Tx, U: UnitOfWorkTrait<Tx>>: Send {
     /// begin transaction and return the unit of work instance.
     ///
     /// # Returns

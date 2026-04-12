@@ -1,27 +1,25 @@
 use crate::models::{labels::ActiveModel, prelude::Labels};
 use layer_domain::entity::LabelEntity;
 use layer_use_case::interface::{GenerationError, LabelRepositoryTrait};
-use sea_orm::{DatabaseConnection, entity::EntityTrait};
+use sea_orm::{DatabaseTransaction, entity::EntityTrait};
 
-pub struct LabelRepository {
-    db: DatabaseConnection,
-}
+pub struct LabelRepository {}
 
 impl LabelRepository {
-    pub fn new(db: DatabaseConnection) -> Self {
-        Self { db }
-    }
-
     fn map_db_err<E: std::fmt::Display>(e: E) -> GenerationError {
         GenerationError::DbError(format!("{e}"))
     }
 }
 
 #[async_trait::async_trait]
-impl LabelRepositoryTrait for LabelRepository {
-    async fn add(&self, e: &LabelEntity) -> Result<String, GenerationError> {
+impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
+    async fn add(
+        &self,
+        tx: &DatabaseTransaction,
+        e: &LabelEntity,
+    ) -> Result<String, GenerationError> {
         let res = Labels::insert::<ActiveModel>(e.into())
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
         Ok(res.last_insert_id)
@@ -29,11 +27,12 @@ impl LabelRepositoryTrait for LabelRepository {
 
     async fn get(
         &self,
+        tx: &DatabaseTransaction,
         label: Option<impl AsRef<str> + Send>,
     ) -> Result<Vec<LabelEntity>, GenerationError> {
         if let Some(label) = label {
             let found = Labels::find_by_id(label.as_ref().to_string())
-                .one(&self.db)
+                .one(tx)
                 .await
                 .map_err(Self::map_db_err)?;
             if let Some(label) = found {
@@ -42,10 +41,7 @@ impl LabelRepositoryTrait for LabelRepository {
                 Ok(vec![])
             }
         } else {
-            let labels = Labels::find()
-                .all(&self.db)
-                .await
-                .map_err(Self::map_db_err)?;
+            let labels = Labels::find().all(tx).await.map_err(Self::map_db_err)?;
             let records = labels
                 .into_iter()
                 .map(|label| Ok(label.into()))
@@ -54,17 +50,25 @@ impl LabelRepositoryTrait for LabelRepository {
         }
     }
 
-    async fn update(&self, e: &LabelEntity) -> Result<LabelEntity, GenerationError> {
+    async fn update(
+        &self,
+        tx: &DatabaseTransaction,
+        e: &LabelEntity,
+    ) -> Result<LabelEntity, GenerationError> {
         let result = Labels::update::<ActiveModel>(e.into())
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
         Ok(result.into())
     }
 
-    async fn delete(&self, label: impl AsRef<str> + Send) -> Result<(), GenerationError> {
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        label: impl AsRef<str> + Send,
+    ) -> Result<(), GenerationError> {
         let result = Labels::delete_by_id(label.as_ref().to_string())
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
         if result.rows_affected == 1 {

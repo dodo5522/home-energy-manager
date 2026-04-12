@@ -1,32 +1,37 @@
 use layer_use_case::interface::UnitOfWorkTrait;
-use sea_orm::DatabaseTransaction;
 use std::io::{Error, ErrorKind};
 
+/// UnitOfWork struct. This has tx executor with I/F for TransactionExecutor.
 pub struct UnitOfWork {
-    tx: DatabaseTransaction,
+    tx: sea_orm::DatabaseTransaction,
 }
 
+/// Default UnitOfWork with SeaOrm transaction.
 impl UnitOfWork {
-    pub fn new(tx: DatabaseTransaction) -> Self {
+    pub fn new(tx: sea_orm::DatabaseTransaction) -> Self {
         Self { tx }
     }
 }
 
 #[async_trait::async_trait]
-impl UnitOfWorkTrait for UnitOfWork {
+impl UnitOfWorkTrait<sea_orm::DatabaseTransaction> for UnitOfWork {
+    fn ref_tx(&self) -> &sea_orm::DatabaseTransaction {
+        &self.tx
+    }
+
     async fn commit(self) -> Result<(), Error> {
-        self.tx
+        Ok(self
+            .tx
             .commit()
             .await
-            .map_err(|e| Error::new(ErrorKind::ConnectionAborted, e))?;
-        Ok(())
+            .map_err(|e| Error::new(ErrorKind::ConnectionAborted, e))?)
     }
 
     async fn rollback(self) -> Result<(), Error> {
-        self.tx
+        Ok(self
+            .tx
             .rollback()
             .await
-            .map_err(|e| Error::new(ErrorKind::ConnectionAborted, e))?;
-        Ok(())
+            .map_err(|e| Error::new(ErrorKind::ConnectionAborted, e))?)
     }
 }

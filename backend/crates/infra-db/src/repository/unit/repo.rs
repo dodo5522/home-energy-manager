@@ -1,17 +1,11 @@
 use crate::models::{prelude::Units, units::ActiveModel};
 use layer_domain::{entity::UnitEntity, value_object};
 use layer_use_case::interface::{GenerationError, UnitRepositoryTrait};
-use sea_orm::{DatabaseConnection, entity::EntityTrait};
+use sea_orm::{DatabaseTransaction, entity::EntityTrait};
 
-pub struct UnitRepository {
-    db: DatabaseConnection,
-}
+pub struct UnitRepository {}
 
 impl UnitRepository {
-    pub fn new(db: DatabaseConnection) -> Self {
-        Self { db }
-    }
-
     fn map_unknown_err<E: std::fmt::Display>(e: E) -> GenerationError {
         GenerationError::Unknown(format!("{e}"))
     }
@@ -22,10 +16,14 @@ impl UnitRepository {
 }
 
 #[async_trait::async_trait]
-impl UnitRepositoryTrait for UnitRepository {
-    async fn add(&self, e: &UnitEntity) -> Result<value_object::Unit, GenerationError> {
+impl UnitRepositoryTrait<DatabaseTransaction> for UnitRepository {
+    async fn add(
+        &self,
+        tx: &DatabaseTransaction,
+        e: &UnitEntity,
+    ) -> Result<value_object::Unit, GenerationError> {
         let res = Units::insert::<ActiveModel>(e.into())
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
         Ok(value_object::Unit::new(res.last_insert_id).map_err(Self::map_unknown_err)?)
@@ -33,11 +31,12 @@ impl UnitRepositoryTrait for UnitRepository {
 
     async fn get(
         &self,
+        tx: &DatabaseTransaction,
         unit: Option<&value_object::Unit>,
     ) -> Result<Vec<UnitEntity>, GenerationError> {
         if let Some(unit) = unit {
             let unit = Units::find_by_id(unit.to_string())
-                .one(&self.db)
+                .one(tx)
                 .await
                 .map_err(Self::map_db_err)?;
             if let Some(unit) = unit {
@@ -46,10 +45,7 @@ impl UnitRepositoryTrait for UnitRepository {
                 Ok(vec![])
             }
         } else {
-            let units = Units::find()
-                .all(&self.db)
-                .await
-                .map_err(Self::map_db_err)?;
+            let units = Units::find().all(tx).await.map_err(Self::map_db_err)?;
             let records = units
                 .into_iter()
                 .map(|u| Ok(u.try_into()?))
@@ -58,17 +54,25 @@ impl UnitRepositoryTrait for UnitRepository {
         }
     }
 
-    async fn update(&self, e: &UnitEntity) -> Result<UnitEntity, GenerationError> {
+    async fn update(
+        &self,
+        tx: &DatabaseTransaction,
+        e: &UnitEntity,
+    ) -> Result<UnitEntity, GenerationError> {
         let result = Units::update::<ActiveModel>(e.into())
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
         Ok(result.try_into()?)
     }
 
-    async fn delete(&self, unit: &value_object::Unit) -> Result<(), GenerationError> {
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        unit: &value_object::Unit,
+    ) -> Result<(), GenerationError> {
         let result = Units::delete_by_id::<String>(unit.into())
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
         if result.rows_affected > 0 {

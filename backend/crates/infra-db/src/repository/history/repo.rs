@@ -1,29 +1,27 @@
 use crate::models::{histories::ActiveModel, prelude::Histories};
 use layer_domain::entity;
-use layer_use_case::interface::{GenerationError as Error, HistoryRepositoryTrait};
-use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
+use layer_use_case::interface::{GenerationError, HistoryRepositoryTrait};
+use sea_orm::{ActiveValue, DatabaseTransaction, entity::EntityTrait};
 
-pub struct HistoryRepository {
-    db: DatabaseConnection,
-}
+pub struct HistoryRepository {}
 
 impl HistoryRepository {
-    pub fn new(db: DatabaseConnection) -> Self {
-        Self { db }
+    fn map_db_err<E: std::fmt::Display>(e: E) -> GenerationError {
+        GenerationError::DbError(format!("{e}"))
     }
 
-    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
-        Error::DbError(format!("{e}"))
-    }
-
-    fn map_invalid_unit(unit: String) -> Error {
-        Error::InvalidUnit(unit)
+    fn map_invalid_unit(unit: String) -> GenerationError {
+        GenerationError::InvalidUnit(unit)
     }
 }
 
 #[async_trait::async_trait]
-impl HistoryRepositoryTrait for HistoryRepository {
-    async fn add(&self, new: &entity::HistoryEntity) -> Result<i64, Error> {
+impl HistoryRepositoryTrait<DatabaseTransaction> for HistoryRepository {
+    async fn add(
+        &self,
+        tx: &DatabaseTransaction,
+        new: &entity::HistoryEntity,
+    ) -> Result<i64, GenerationError> {
         let history = ActiveModel {
             unit: ActiveValue::Set(new.unit.to_owned().into()),
             group: ActiveValue::Set(new.sub_system.to_owned()),
@@ -34,16 +32,20 @@ impl HistoryRepositoryTrait for HistoryRepository {
         };
 
         let res = Histories::insert(history)
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
 
         Ok(res.last_insert_id)
     }
 
-    async fn get(&self, id: i64) -> Result<Option<entity::HistoryEntity>, Error> {
+    async fn get(
+        &self,
+        tx: &DatabaseTransaction,
+        id: i64,
+    ) -> Result<Option<entity::HistoryEntity>, GenerationError> {
         let h = Histories::find_by_id::<i64>(id.into())
-            .one(&self.db)
+            .one(tx)
             .await
             .map_err(Self::map_db_err)?;
 
@@ -64,8 +66,8 @@ impl HistoryRepositoryTrait for HistoryRepository {
         }
     }
 
-    async fn delete(&self, id: i64) -> Result<(), Error> {
-        Err(Error::NotImplemented(
+    async fn delete(&self, tx: &DatabaseTransaction, id: i64) -> Result<(), GenerationError> {
+        Err(GenerationError::NotImplemented(
             "HistoryRepository::delete()".to_string(),
         ))
     }

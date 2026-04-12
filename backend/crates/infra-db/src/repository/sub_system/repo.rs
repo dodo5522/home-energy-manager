@@ -1,25 +1,23 @@
 use crate::models::{groups::ActiveModel, prelude::Groups};
 use layer_domain::entity;
-use layer_use_case::interface::{GenerationError as Error, SubSystemRepositoryTrait};
-use sea_orm::{ActiveValue, DatabaseConnection, entity::EntityTrait};
+use layer_use_case::interface::{GenerationError, SubSystemRepositoryTrait};
+use sea_orm::{ActiveValue, DatabaseTransaction, entity::EntityTrait};
 
-pub struct SubSystemRepository {
-    db: DatabaseConnection,
-}
+pub struct SubSystemRepository {}
 
 impl SubSystemRepository {
-    pub fn new(db: DatabaseConnection) -> Self {
-        Self { db }
-    }
-
-    fn map_db_err<E: std::fmt::Display>(e: E) -> Error {
-        Error::DbError(format!("{e}"))
+    fn map_db_err<E: std::fmt::Display>(e: E) -> GenerationError {
+        GenerationError::DbError(format!("{e}"))
     }
 }
 
 #[async_trait::async_trait]
-impl SubSystemRepositoryTrait for SubSystemRepository {
-    async fn add(&self, new: &entity::SubSystemEntity) -> Result<String, Error> {
+impl SubSystemRepositoryTrait<DatabaseTransaction> for SubSystemRepository {
+    async fn add(
+        &self,
+        tx: &DatabaseTransaction,
+        new: &entity::SubSystemEntity,
+    ) -> Result<String, GenerationError> {
         let group = ActiveModel {
             group: ActiveValue::Set(new.sub_system.to_owned()),
             remark: ActiveValue::Set(new.remark.to_owned()),
@@ -27,18 +25,18 @@ impl SubSystemRepositoryTrait for SubSystemRepository {
         };
 
         let res = Groups::insert(group)
-            .exec(&self.db)
+            .exec(tx)
             .await
             .map_err(Self::map_db_err)?;
 
         Ok(res.last_insert_id)
     }
 
-    async fn get(&self) -> Result<Vec<entity::SubSystemEntity>, Error> {
-        let groups = Groups::find()
-            .all(&self.db)
-            .await
-            .map_err(Self::map_db_err)?;
+    async fn get(
+        &self,
+        tx: &DatabaseTransaction,
+    ) -> Result<Vec<entity::SubSystemEntity>, GenerationError> {
+        let groups = Groups::find().all(tx).await.map_err(Self::map_db_err)?;
 
         let records = groups
             .into_iter()
@@ -53,14 +51,22 @@ impl SubSystemRepositoryTrait for SubSystemRepository {
         Ok(records)
     }
 
-    async fn has(&self, system: &String) -> Result<bool, Error> {
-        Err(Error::NotImplemented(
+    async fn has(
+        &self,
+        tx: &DatabaseTransaction,
+        system: &String,
+    ) -> Result<bool, GenerationError> {
+        Err(GenerationError::NotImplemented(
             "SubSystemRepository::has()".to_string(),
         ))
     }
 
-    async fn delete(&self, system: &String) -> Result<(), Error> {
-        Err(Error::NotImplemented(
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        system: &String,
+    ) -> Result<(), GenerationError> {
+        Err(GenerationError::NotImplemented(
             "SubSystemRepository::delete()".to_string(),
         ))
     }

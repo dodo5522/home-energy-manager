@@ -1,6 +1,8 @@
 use super::UnitOfWork;
 use layer_use_case::interface::UnitOfWorkFactoryTrait;
-use sea_orm::{AccessMode, DatabaseConnection, IsolationLevel, TransactionTrait};
+use sea_orm::{
+    AccessMode, DatabaseConnection, DatabaseTransaction, IsolationLevel, TransactionTrait,
+};
 use std::io::{Error, ErrorKind};
 
 pub struct UnitOfWorkFactory {
@@ -14,8 +16,8 @@ impl UnitOfWorkFactory {
 }
 
 #[async_trait::async_trait]
-impl UnitOfWorkFactoryTrait<UnitOfWork> for UnitOfWorkFactory {
-    async fn begin(self) -> Result<UnitOfWork, std::io::Error> {
+impl UnitOfWorkFactoryTrait<DatabaseTransaction, UnitOfWork> for UnitOfWorkFactory {
+    async fn begin(self) -> Result<UnitOfWork, Error> {
         let tx = self
             .db
             .begin()
@@ -36,7 +38,7 @@ impl UnitOfWorkSerializableFactory {
 }
 
 #[async_trait::async_trait]
-impl UnitOfWorkFactoryTrait<UnitOfWork> for UnitOfWorkSerializableFactory {
+impl UnitOfWorkFactoryTrait<DatabaseTransaction, UnitOfWork> for UnitOfWorkSerializableFactory {
     async fn begin(self) -> Result<UnitOfWork, Error> {
         let tx = self
             .db

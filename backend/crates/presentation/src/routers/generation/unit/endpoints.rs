@@ -1,18 +1,17 @@
-use super::get::UnitItem;
-use super::{post::UnitPostRequest, put::UpdateUnitQuery};
-use crate::connectors::db::get;
-use crate::error_mapper::{map_bad_request, map_internal_server_error, map_not_found_error};
-use crate::errors::ErrorResponse;
+use super::{get::UnitItem, post::UnitPostRequest, put::UpdateUnitQuery};
+use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
 use axum::{
     Json,
     extract::{Path, Query},
     http::StatusCode,
 };
 use layer_domain::entity::UnitEntity;
-use layer_infra_db::repository::unit::UnitRepository;
-use layer_infra_db::unit_of_work::UnitOfWorkFactory;
+use layer_infra_db::{repository::unit::UnitRepository, unit_of_work::UnitOfWorkFactory};
+use layer_use_case::interface::GenerationError;
 use layer_use_case::unit::UnitUseCase;
-use sea_orm::Update;
+
+struct ErrorMapper {}
+impl ErrorMapperTrait for ErrorMapper {}
 
 #[utoipa::path(
     post,
@@ -30,17 +29,22 @@ pub async fn post_unit(
     Json(body): Json<UnitPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let unit = UnitEntity {
-        unit: body.unit.try_into().map_err(map_bad_request)?,
+        unit: body
+            .unit
+            .try_into()
+            .map_err(ErrorMapper::map_to_bad_request)?,
         remark: body.remark,
     };
     println!("Inserting unit record: {:?}", unit);
 
-    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
-        UnitRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        UnitRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
-
     if let Err(e) = use_case.create(unit).await {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -73,18 +77,21 @@ pub async fn update_unit(
     Path(unit): Path<String>,
     Query(query): Query<UpdateUnitQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
-        UnitRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        UnitRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let _ = use_case
         .update(UnitEntity {
-            unit: unit.try_into().map_err(map_bad_request)?,
+            unit: unit.try_into().map_err(ErrorMapper::map_to_bad_request)?,
             remark: query.remark,
         })
         .await
-        .map_err(map_not_found_error)?;
+        .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -101,15 +108,18 @@ pub async fn update_unit(
 )]
 pub async fn get_units()
 -> Result<(StatusCode, Json<Vec<UnitItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
-        UnitRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        UnitRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let units = use_case
         .get_all()
         .await
-        .map_err(map_internal_server_error)?;
+        .map_err(ErrorMapper::map_generation_error)?;
 
     Ok((
         StatusCode::OK,
@@ -134,20 +144,25 @@ pub async fn get_units()
 pub async fn get_unit(
     Path(unit): Path<String>,
 ) -> Result<(StatusCode, Json<UnitItem>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
-        UnitRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        UnitRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let found = use_case
         .get(&unit)
         .await
-        .map_err(map_internal_server_error)?;
+        .map_err(ErrorMapper::map_generation_error)?;
 
     if let Some(found_unit) = found {
         Ok((StatusCode::OK, Json(found_unit.into())))
     } else {
-        Err(map_not_found_error(format!("Unit '{unit}' not found")))
+        Err(ErrorMapper::map_generation_error(
+            GenerationError::NotFound(format!("Unit '{unit}' not found")),
+        ))
     }
 }
 
@@ -168,14 +183,17 @@ pub async fn get_unit(
 pub async fn delete_unit(
     Path(unit): Path<String>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get().await.map_err(map_internal_server_error)?;
     let use_case = UnitUseCase::new(
-        UnitRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        UnitRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let _ = use_case
         .delete(&unit)
         .await
-        .map_err(map_internal_server_error)?;
+        .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::NO_CONTENT)
 }

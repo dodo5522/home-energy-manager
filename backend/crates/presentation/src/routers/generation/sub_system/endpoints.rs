@@ -1,12 +1,15 @@
 use super::get::SubSystemItem;
 use super::post::SubSystemPostRequest;
-use crate::connectors::db::get;
-use crate::error_mapper::map_internal_server_error;
-use crate::errors::ErrorResponse;
+use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
 use axum::{Json, http::StatusCode};
-use layer_infra_db::repository::sub_system::SubSystemRepository;
-use layer_infra_db::unit_of_work::UnitOfWorkFactory;
-use layer_use_case::sub_system::{CreateSubSystemUseCase, GetSubSystemsUseCase, SubSystemInOut};
+use layer_domain::entity::SubSystemEntity;
+use layer_infra_db::{
+    repository::sub_system::SubSystemRepository, unit_of_work::UnitOfWorkFactory,
+};
+use layer_use_case::sub_system::SubSystemUseCase;
+
+struct ErrorMapper {}
+impl ErrorMapperTrait for ErrorMapper {}
 
 #[utoipa::path(
     post,
@@ -23,16 +26,19 @@ use layer_use_case::sub_system::{CreateSubSystemUseCase, GetSubSystemsUseCase, S
 pub async fn post_sub_system(
     Json(body): Json<SubSystemPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let system = SubSystemInOut {
+    let system = SubSystemEntity {
         sub_system: body.sub_system,
         remark: body.remark,
     };
     println!("Inserting sub system record: {:?}", system);
 
-    let db = get().await.map_err(map_internal_server_error)?;
-    let use_case = CreateSubSystemUseCase::new(
-        SubSystemRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+    let use_case = SubSystemUseCase::new(
+        SubSystemRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
 
     if let Err(e) = use_case.create(system).await {
@@ -60,9 +66,18 @@ pub async fn post_sub_system(
 )]
 pub async fn get_sub_systems()
 -> Result<(StatusCode, Json<Vec<SubSystemItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get().await.map_err(map_internal_server_error)?;
-    let use_case = GetSubSystemsUseCase::new(SubSystemRepository::new(db.clone()));
-    let systems = use_case.get().await.map_err(map_internal_server_error)?;
+    let use_case = SubSystemUseCase::new(
+        SubSystemRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
+    );
+    let systems = use_case
+        .get()
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
 
     Ok((
         StatusCode::OK,

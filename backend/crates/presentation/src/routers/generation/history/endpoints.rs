@@ -1,12 +1,13 @@
 use super::get::Response as GetResponse;
 use super::post::{HistoryPostRequest, HistoryPostResponse};
-use crate::connectors::db::get;
-use crate::error_mapper::{map_bad_request, map_internal_server_error};
-use crate::errors::ErrorResponse;
+use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
 use axum::{Json, extract::Path, http::StatusCode};
-use layer_infra_db::repository::history::HistoryRepository;
-use layer_infra_db::unit_of_work::UnitOfWorkFactory;
-use layer_use_case::history::{CreateHistoryUseCase, GetHistoryUseCase, HistoryInOut};
+use layer_domain::entity::HistoryEntity;
+use layer_infra_db::{repository::history::HistoryRepository, unit_of_work::UnitOfWorkFactory};
+use layer_use_case::history::HistoryUseCase;
+
+struct ErrorMapper {}
+impl ErrorMapperTrait for ErrorMapper {}
 
 #[utoipa::path(
     post,
@@ -23,8 +24,11 @@ use layer_use_case::history::{CreateHistoryUseCase, GetHistoryUseCase, HistoryIn
 pub async fn post_history(
     Json(body): Json<HistoryPostRequest>,
 ) -> Result<(StatusCode, Json<HistoryPostResponse>), (StatusCode, Json<ErrorResponse>)> {
-    let energy = HistoryInOut {
-        unit: body.unit.try_into().map_err(map_bad_request)?,
+    let energy = HistoryEntity {
+        unit: body
+            .unit
+            .try_into()
+            .map_err(ErrorMapper::map_to_bad_request)?,
         sub_system: body.sub_system,
         label: body.label,
         value: body.value,
@@ -32,10 +36,13 @@ pub async fn post_history(
     };
     println!("Inserting history record: {:?}", energy);
 
-    let db = get().await.map_err(map_internal_server_error)?;
-    let use_case = CreateHistoryUseCase::new(
-        HistoryRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+    let use_case = HistoryUseCase::new(
+        HistoryRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let created = use_case.create(energy).await;
 
@@ -68,12 +75,18 @@ pub async fn post_history(
 pub async fn get_history(
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get().await.map_err(map_internal_server_error)?;
-    let use_case = GetHistoryUseCase::new(
-        HistoryRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+    let use_case = HistoryUseCase::new(
+        HistoryRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
-    let history = use_case.get(id).await.map_err(map_internal_server_error)?;
+    let history = use_case
+        .get(id)
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
 
     match history {
         Some(history) => Ok((

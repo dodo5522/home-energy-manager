@@ -14,12 +14,21 @@ async fn run() -> anyhow::Result<()> {
     let bind_addr = var("BIND_ADDR")?;
     let bind_port = var("BIND_PORT")?;
     let address = format!("{bind_addr}:{bind_port}");
-    let allowed_origins: Vec<String> = var("ALLOWED_ORIGINS")?
+
+    #[allow(unused_mut)]
+    let mut allowed_origins: Vec<String> = var("ALLOWED_ORIGINS")?
         .split(",")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .map(|s| s.into())
         .collect();
+
+    #[cfg(feature = "allow-localhost-access")]
+    {
+        eprintln!("debug feature enabled");
+        allowed_origins.push("http://localhost:3000".to_string());
+        allowed_origins.push("http://0.0.0.0:3000".to_string());
+    }
 
     tracing_subscriber::fmt::init();
 

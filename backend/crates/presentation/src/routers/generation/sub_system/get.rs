@@ -1,4 +1,4 @@
-use layer_use_case::sub_system::SubSystemInOut;
+use layer_domain::entity::SubSystemEntity;
 use serde::Serialize;
 use utoipa::ToSchema;
 
@@ -10,16 +10,16 @@ pub struct SubSystemItem {
     pub remark: String,
 }
 
-impl From<SubSystemInOut> for SubSystemItem {
-    fn from(sub_system_in_out: SubSystemInOut) -> Self {
+impl From<SubSystemEntity> for SubSystemItem {
+    fn from(e: SubSystemEntity) -> Self {
         Self {
-            sub_system: sub_system_in_out.sub_system,
-            remark: sub_system_in_out.remark,
+            sub_system: e.sub_system,
+            remark: e.remark,
         }
     }
 }
 
-impl From<SubSystemItem> for SubSystemInOut {
+impl From<SubSystemItem> for SubSystemEntity {
     fn from(sub_system_item: SubSystemItem) -> Self {
         Self {
             sub_system: sub_system_item.sub_system,

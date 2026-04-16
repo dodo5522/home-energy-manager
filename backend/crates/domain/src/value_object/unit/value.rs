@@ -1,5 +1,9 @@
-use super::{Unit, UnitError};
+use super::error::UnitError;
 use std::fmt;
+
+/// 物理量の単位を表す値オブジェクト
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Unit(String);
 
 impl Unit {
     /// 物理量単位の値オブジェクトを生成する
@@ -10,18 +14,20 @@ impl Unit {
     /// # Errors
     /// - `UnitError::Empty` - 空文字列が渡された場合
     /// - `UnitError::Blank` - 空白文字列が渡された場合
-    /// - `UnitError::Invalid` - 文字列が英数字を含まない場合
+    /// - `UnitError::Invalid` - 文字列が英数字を含まない、または数字のみの場合
     ///
-    pub fn new(name: impl Into<String>) -> Result<Self, UnitError> {
-        let name = name.into();
+    pub fn new(name: impl AsRef<str>) -> Result<Self, UnitError> {
+        let name = name.as_ref();
         if name.is_empty() {
             Err(UnitError::Empty)
         } else if name.trim().is_empty() {
             Err(UnitError::Blank)
         } else if name.trim().chars().all(|c| !c.is_alphanumeric()) {
-            Err(UnitError::Invalid(name))
+            Err(UnitError::Invalid(name.into()))
+        } else if name.trim().chars().all(|c| c.is_numeric()) {
+            Err(UnitError::Invalid(name.into()))
         } else {
-            Ok(Self(name))
+            Ok(Self(name.into()))
         }
     }
 }
@@ -60,10 +66,17 @@ impl TryFrom<String> for Unit {
     }
 }
 
+impl TryFrom<&String> for Unit {
+    type Error = UnitError;
+
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 #[cfg(test)]
 mod tests_unit {
     use super::*;
-    use std::convert::Infallible;
 
     #[test]
     fn display() {
@@ -73,33 +86,76 @@ mod tests_unit {
     }
 
     #[test]
-    fn creation() {
+    fn create() {
         assert_eq!(Unit::new("V").unwrap().to_string(), "V");
         assert_eq!(Unit::new("Ah").unwrap().to_string(), "Ah");
         assert_eq!(Unit::new("kWh").unwrap().to_string(), "kWh");
         assert_eq!(Unit::new("m/s").unwrap().to_string(), "m/s");
 
-        let u = Unit::new("");
-        assert_eq!(format!("{}", u.err().unwrap()), "unit must not be empty");
-        let u = Unit::new(" ");
-        assert_eq!(format!("{}", u.err().unwrap()), "unit must not be blank");
-        let u = Unit::new("-");
-        assert_eq!(format!("{}", u.err().unwrap()), "'-' is invalid");
+        assert_eq!(
+            format!("{}", Unit::new("").err().unwrap()),
+            "unit must not be empty"
+        );
+        assert_eq!(
+            format!("{}", Unit::new(" ").err().unwrap()),
+            "unit must not be blank"
+        );
+        assert_eq!(
+            format!("{}", Unit::new("-").err().unwrap()),
+            "'-' is invalid"
+        );
+        assert_eq!(
+            format!("{}", Unit::new("123").err().unwrap()),
+            "'123' is invalid"
+        );
     }
 
     #[test]
-    fn from_and_into() {
-        let u = Unit::try_from("");
-        assert!(u.is_err());
+    fn convert() {
+        let expected = "kWh";
+        let u = Unit::new(expected).unwrap();
+        assert_eq!(String::from(&u), expected);
+        assert_eq!(String::from(u), expected);
 
-        let u = Unit::try_from("kWh");
-        assert!(u.is_ok());
-        assert_eq!(String::from(u.unwrap()), "kWh");
+        let u = Unit::new(expected).unwrap();
+        let s: String = (&u).into();
+        assert_eq!(s, expected);
+        let s: String = u.into();
+        assert_eq!(s, expected);
+    }
 
-        let u: Result<String, Infallible> = Unit::try_from("m/s").unwrap().try_into();
-        assert!(u.is_ok());
-        assert_eq!(u.unwrap(), "m/s");
-        let u: String = Unit::try_from("m/s").unwrap().into();
-        assert_eq!(u, "m/s");
+    #[test]
+    fn try_to_convert() {
+        let expected = "m/s";
+        let u = Unit::try_from(expected).unwrap();
+        assert_eq!(u.0, expected);
+
+        let u: String = Unit::try_from(expected.to_string()).unwrap().into();
+        assert_eq!(u, expected);
+
+        let u: String = Unit::try_from(&(expected.to_string())).unwrap().into();
+        assert_eq!(u, expected);
+
+        let u: Result<Unit, UnitError> = expected.try_into();
+        assert_eq!(u.unwrap().0, expected);
+
+        let u: Result<Unit, UnitError> = expected.to_string().try_into();
+        assert_eq!(u.unwrap().0, expected);
+
+        let u: Result<Unit, UnitError> = (&(expected.to_string())).try_into();
+        assert_eq!(u.unwrap().0, expected);
+    }
+
+    #[test]
+    fn try_to_convert_with_error() {
+        assert_eq!(Unit::try_from("").err().unwrap(), UnitError::Empty);
+        assert_eq!(
+            Unit::try_from("".to_string()).err().unwrap(),
+            UnitError::Empty
+        );
+        assert_eq!(
+            Unit::try_from(&"".to_string()).err().unwrap(),
+            UnitError::Empty
+        );
     }
 }

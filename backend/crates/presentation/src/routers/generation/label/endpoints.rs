@@ -1,15 +1,17 @@
-use super::{get::LabelItem, post::LabelPostRequest, update::UpdateLabelQuery};
-use crate::di::db::get_connection;
-use crate::error_mapper::{map_internal_server_error, map_not_found_error};
-use crate::errors::ErrorResponse;
+use super::{get::LabelItem, post::LabelPostRequest, put::UpdateLabelQuery};
+use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
 use axum::{
     Json,
     extract::{Path, Query},
     http::StatusCode,
 };
-use layer_infra_db::repository::label::LabelRepository;
-use layer_infra_db::unit_of_work::UnitOfWorkFactory;
-use layer_use_case::label::{LabelInOut, LabelUseCase};
+use layer_domain::entity::LabelEntity;
+use layer_infra_db::{Error, repository::label::LabelRepository, unit_of_work::UnitOfWorkFactory};
+use layer_use_case::interface::GenerationError;
+use layer_use_case::label::LabelUseCase;
+
+struct ErrorMapper {}
+impl ErrorMapperTrait for ErrorMapper {}
 
 #[utoipa::path(
     post,
@@ -26,16 +28,19 @@ use layer_use_case::label::{LabelInOut, LabelUseCase};
 pub async fn post_label(
     Json(body): Json<LabelPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let label = LabelInOut {
+    let label = LabelEntity {
         label: body.label,
-        remark: body.remark,
+        remark: Some(body.remark),
     };
     println!("Inserting label record: {:?}", label);
 
-    let db = get_connection().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
-        LabelRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        LabelRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
 
     if let Err(e) = use_case.create(label).await {
@@ -60,7 +65,7 @@ pub async fn post_label(
         ("label", description = "label name"),
     ),
     responses(
-        (status = 200, description = "OK"),
+        (status = 204, description = "OK"),
         (status = 400, description = "Bad request", body = ErrorResponse),
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
@@ -69,16 +74,21 @@ pub async fn update_label(
     Path(label): Path<String>,
     Query(query): Query<UpdateLabelQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let label = LabelInOut {
-        label: label,
-        remark: query.remark,
-    };
-    let db = get_connection().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
-        LabelRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        LabelRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
-    let _ = use_case.update(label).await.map_err(map_not_found_error)?;
+    let _ = use_case
+        .update(LabelEntity {
+            label,
+            remark: Some(query.remark),
+        })
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::OK)
 }
 
@@ -95,20 +105,23 @@ pub async fn update_label(
 )]
 pub async fn get_labels()
 -> Result<(StatusCode, Json<Vec<LabelItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
-        LabelRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        LabelRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let labels = use_case
         .get_all()
         .await
-        .map_err(map_internal_server_error)?;
-
-    Ok((
-        StatusCode::OK,
-        Json(labels.into_iter().map(LabelItem::from).collect()),
-    ))
+        .map_err(ErrorMapper::map_generation_error)?;
+    let items = labels
+        .into_iter()
+        .map(|e| LabelItem::try_from(e).map_err(ErrorMapper::map_to_internal_server_error))
+        .collect::<Result<Vec<LabelItem>, _>>()?;
+    Ok((StatusCode::OK, Json(items)))
 }
 
 #[utoipa::path(
@@ -128,20 +141,32 @@ pub async fn get_labels()
 pub async fn get_label(
     Path(label): Path<String>,
 ) -> Result<(StatusCode, Json<LabelItem>), (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
-        LabelRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        LabelRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
     let found = use_case
-        .get(label.to_owned())
+        .get(&label)
         .await
-        .map_err(map_internal_server_error)?;
+        .map_err(ErrorMapper::map_generation_error)?;
 
     if let Some(found_label) = found {
-        Ok((StatusCode::OK, Json(found_label.into())))
+        Ok((
+            StatusCode::OK,
+            Json(
+                found_label
+                    .try_into()
+                    .map_err(ErrorMapper::map_to_internal_server_error)?,
+            ),
+        ))
     } else {
-        Err(map_not_found_error(format!("Label '{}' not found", label)))
+        Err(ErrorMapper::map_generation_error(
+            GenerationError::NotFound(format!("Label '{label}' not found")),
+        ))
     }
 }
 
@@ -154,7 +179,7 @@ pub async fn get_label(
         ("label", description = "label name"),
     ),
     responses(
-        (status = 204, description = "OK", body = LabelItem),
+        (status = 204, description = "Deleted"),
         (status = 404, description = "Not Found", body = ErrorResponse),
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
@@ -162,11 +187,17 @@ pub async fn get_label(
 pub async fn delete_label(
     Path(label): Path<String>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let db = get_connection().await.map_err(map_internal_server_error)?;
     let use_case = LabelUseCase::new(
-        LabelRepository::new(db.clone()),
-        UnitOfWorkFactory::new(db.clone()),
+        LabelRepository {},
+        UnitOfWorkFactory::new(
+            db::get()
+                .await
+                .map_err(ErrorMapper::map_to_internal_server_error)?,
+        ),
     );
-    let _ = use_case.delete(label).await.map_err(map_not_found_error)?;
+    let _ = use_case
+        .delete(label)
+        .await
+        .map_err(ErrorMapper::map_generation_error)?;
     Ok(StatusCode::NO_CONTENT)
 }

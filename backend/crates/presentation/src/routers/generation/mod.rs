@@ -1,5 +1,5 @@
 use axum::Router;
-use axum::routing::{delete, get, post, put};
+use axum::routing::{delete, get, post};
 
 pub(crate) mod history;
 pub(crate) mod label;
@@ -23,5 +23,13 @@ pub fn route() -> Router {
             "/sub_system",
             post(sub_system::post_sub_system).get(sub_system::get_sub_systems),
         ))
-        .merge(Router::new().route("/unit", post(unit::post_unit).get(unit::get_units)))
+        .merge(Router::new().route("/units", post(unit::post_unit).get(unit::get_units)))
+        .merge(
+            Router::new().route(
+                "/units/{unit}",
+                delete(unit::delete_unit)
+                    .get(unit::get_unit)
+                    .put(unit::update_unit),
+            ),
+        )
 }

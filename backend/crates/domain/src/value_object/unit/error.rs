@@ -1,5 +1,12 @@
-use super::UnitError;
 use std::fmt;
+
+/// 単位の生成に失敗したときのエラー
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum UnitError {
+    Empty,
+    Blank,
+    Invalid(String),
+}
 
 impl fmt::Display for UnitError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -2,6 +2,7 @@ mod connection;
 pub use connection::*;
 mod errors;
 pub use errors::*;
+mod error_mapper;
 mod models;
 pub mod repository;
 pub mod unit_of_work;

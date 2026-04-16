@@ -1,15 +1,14 @@
-use crate::models::{labels::ActiveModel, prelude::Labels};
+use crate::{
+    error_mapper::ErrorMapperTrait,
+    models::{labels::ActiveModel, prelude::Labels},
+};
 use layer_domain::entity::LabelEntity;
 use layer_use_case::interface::{GenerationError, LabelRepositoryTrait};
 use sea_orm::{DatabaseTransaction, entity::EntityTrait};
 
 pub struct LabelRepository {}
 
-impl LabelRepository {
-    fn map_db_err<E: std::fmt::Display>(e: E) -> GenerationError {
-        GenerationError::DbError(format!("{e}"))
-    }
-}
+impl ErrorMapperTrait for LabelRepository {}
 
 #[async_trait::async_trait]
 impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
@@ -21,7 +20,7 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
         let res = Labels::insert::<ActiveModel>(e.into())
             .exec(tx)
             .await
-            .map_err(Self::map_db_err)?;
+            .map_err(Self::map_db_to_generation_error)?;
         Ok(res.last_insert_id)
     }
 
@@ -34,14 +33,17 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
             let found = Labels::find_by_id(label.as_ref().to_string())
                 .one(tx)
                 .await
-                .map_err(Self::map_db_err)?;
+                .map_err(Self::map_db_to_generation_error)?;
             if let Some(label) = found {
                 Ok(vec![label.into()])
             } else {
                 Ok(vec![])
             }
         } else {
-            let labels = Labels::find().all(tx).await.map_err(Self::map_db_err)?;
+            let labels = Labels::find()
+                .all(tx)
+                .await
+                .map_err(Self::map_db_to_generation_error)?;
             let records = labels
                 .into_iter()
                 .map(|label| Ok(label.into()))
@@ -58,7 +60,7 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
         let result = Labels::update::<ActiveModel>(e.into())
             .exec(tx)
             .await
-            .map_err(Self::map_db_err)?;
+            .map_err(Self::map_db_to_generation_error)?;
         Ok(result.into())
     }
 
@@ -70,7 +72,7 @@ impl LabelRepositoryTrait<DatabaseTransaction> for LabelRepository {
         let result = Labels::delete_by_id(label.as_ref().to_string())
             .exec(tx)
             .await
-            .map_err(Self::map_db_err)?;
+            .map_err(Self::map_db_to_generation_error)?;
         if result.rows_affected == 1 {
             Ok(())
         } else {

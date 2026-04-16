@@ -1,19 +1,14 @@
-use crate::models::{histories::ActiveModel, prelude::Histories};
+use crate::{
+    error_mapper::ErrorMapperTrait,
+    models::{histories::ActiveModel, prelude::Histories},
+};
 use layer_domain::entity;
 use layer_use_case::interface::{GenerationError, HistoryRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseTransaction, entity::EntityTrait};
 
 pub struct HistoryRepository {}
 
-impl HistoryRepository {
-    fn map_db_err<E: std::fmt::Display>(e: E) -> GenerationError {
-        GenerationError::DbError(format!("{e}"))
-    }
-
-    fn map_invalid_unit(unit: String) -> GenerationError {
-        GenerationError::InvalidUnit(unit)
-    }
-}
+impl ErrorMapperTrait for HistoryRepository {}
 
 #[async_trait::async_trait]
 impl HistoryRepositoryTrait<DatabaseTransaction> for HistoryRepository {
@@ -34,7 +29,7 @@ impl HistoryRepositoryTrait<DatabaseTransaction> for HistoryRepository {
         let res = Histories::insert(history)
             .exec(tx)
             .await
-            .map_err(Self::map_db_err)?;
+            .map_err(Self::map_db_to_generation_error)?;
 
         Ok(res.last_insert_id)
     }
@@ -47,7 +42,7 @@ impl HistoryRepositoryTrait<DatabaseTransaction> for HistoryRepository {
         let h = Histories::find_by_id::<i64>(id.into())
             .one(tx)
             .await
-            .map_err(Self::map_db_err)?;
+            .map_err(Self::map_db_to_generation_error)?;
 
         if let Some(history) = h {
             Ok(Some(entity::HistoryEntity {

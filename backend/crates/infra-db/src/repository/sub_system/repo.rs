@@ -1,15 +1,14 @@
-use crate::models::{groups::ActiveModel, prelude::Groups};
+use crate::{
+    error_mapper::ErrorMapperTrait,
+    models::{groups::ActiveModel, prelude::Groups},
+};
 use layer_domain::entity;
 use layer_use_case::interface::{GenerationError, SubSystemRepositoryTrait};
 use sea_orm::{ActiveValue, DatabaseTransaction, entity::EntityTrait};
 
 pub struct SubSystemRepository {}
 
-impl SubSystemRepository {
-    fn map_db_err<E: std::fmt::Display>(e: E) -> GenerationError {
-        GenerationError::DbError(format!("{e}"))
-    }
-}
+impl ErrorMapperTrait for SubSystemRepository {}
 
 #[async_trait::async_trait]
 impl SubSystemRepositoryTrait<DatabaseTransaction> for SubSystemRepository {
@@ -27,7 +26,7 @@ impl SubSystemRepositoryTrait<DatabaseTransaction> for SubSystemRepository {
         let res = Groups::insert(group)
             .exec(tx)
             .await
-            .map_err(Self::map_db_err)?;
+            .map_err(Self::map_db_to_generation_error)?;
 
         Ok(res.last_insert_id)
     }
@@ -36,7 +35,10 @@ impl SubSystemRepositoryTrait<DatabaseTransaction> for SubSystemRepository {
         &self,
         tx: &DatabaseTransaction,
     ) -> Result<Vec<entity::SubSystemEntity>, GenerationError> {
-        let groups = Groups::find().all(tx).await.map_err(Self::map_db_err)?;
+        let groups = Groups::find()
+            .all(tx)
+            .await
+            .map_err(Self::map_db_to_generation_error)?;
 
         let records = groups
             .into_iter()

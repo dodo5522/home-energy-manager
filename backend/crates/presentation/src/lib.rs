@@ -1,4 +1,5 @@
-pub mod connectors;
-pub mod error_mapper;
-pub mod errors;
-pub mod routers;
+mod connectors;
+mod error_mapper;
+mod errors;
+mod routers;
+pub use routers::root::route;

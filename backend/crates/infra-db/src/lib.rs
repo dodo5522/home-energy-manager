@@ -1,7 +1,7 @@
-mod connection;
-pub use connection::*;
 mod errors;
 pub use errors::*;
+mod connector;
+pub use connector::*;
 mod error_mapper;
 mod models;
 pub mod repository;

@@ -32,6 +32,7 @@ edition.workspace = true
 
 [dependencies]
 layer-presentation = { path = "./crates/presentation" }
+layer-infra-db = { path = "./crates/infra-db" }
 anyhow.workspace = true
 axum.workspace = true
 tokio.workspace = true

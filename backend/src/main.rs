@@ -1,4 +1,4 @@
-use layer_presentation::routers;
+use layer_presentation::route;
 use std::env::var;
 
 #[tokio::main]
@@ -34,7 +34,7 @@ async fn run() -> anyhow::Result<()> {
 
     // run our app with hyper, listening globally on the port
     let listener = tokio::net::TcpListener::bind(address).await?;
-    axum::serve(listener, routers::route(allowed_origins)).await?;
+    axum::serve(listener, route(allowed_origins)).await?;
 
     Ok(())
 }

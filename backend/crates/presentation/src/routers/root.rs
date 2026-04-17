@@ -1,30 +1,35 @@
 use crate::routers::{generation, health};
 use axum::Router;
 use http::{HeaderValue, Method};
+use std::io::{Error, ErrorKind};
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
 
-fn cors(allowed_origins: Vec<String>) -> CorsLayer {
-    CorsLayer::new()
-        .allow_origin(
-            allowed_origins
-                .into_iter()
-                .map(|origin| origin.parse::<HeaderValue>().expect("Invalid origin"))
-                .collect::<Vec<HeaderValue>>(),
-        )
+fn cors(allowed_origins: Vec<String>) -> Result<CorsLayer, Error> {
+    let origins = allowed_origins
+        .into_iter()
+        .map(|origin| {
+            origin
+                .parse::<HeaderValue>()
+                .map_err(|e| Error::new(ErrorKind::Other, e))
+        })
+        .collect::<Result<Vec<HeaderValue>, _>>()?;
+
+    Ok(CorsLayer::new()
+        .allow_origin(origins)
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers(Any)
+        .allow_headers(Any))
 }
 
-pub fn route(allowed_origins: Vec<String>) -> Router {
-    Router::new()
+pub fn route(allowed_origins: Vec<String>) -> Result<Router, Error> {
+    Ok(Router::new()
         .merge(SwaggerUi::new("/docs/swagger").url("/openapi.json", ApiDoc::openapi()))
         .merge(Redoc::with_url("/docs/redoc", ApiDoc::openapi()))
         .nest("/health", health::route())
         .nest("/generation", generation::route())
-        .layer(cors(allowed_origins))
+        .layer(cors(allowed_origins)?))
 }
 
 #[derive(OpenApi)]

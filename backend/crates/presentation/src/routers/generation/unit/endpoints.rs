@@ -1,14 +1,13 @@
 use super::{get::UnitItem, post::UnitPostRequest, put::UpdateUnitQuery};
-use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
+use crate::{error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState};
 use axum::{
     Json,
-    extract::{Path, Query},
+    extract::{Path, Query, State},
     http::StatusCode,
 };
 use layer_domain::entity::UnitEntity;
 use layer_infra_db::{repository::unit::UnitRepository, unit_of_work::UnitOfWorkFactory};
-use layer_use_case::interface::GenerationError;
-use layer_use_case::unit::UnitUseCase;
+use layer_use_case::{interface::GenerationError, unit::UnitUseCase};
 
 struct ErrorMapper {}
 impl ErrorMapperTrait for ErrorMapper {}
@@ -26,6 +25,7 @@ impl ErrorMapperTrait for ErrorMapper {}
     )
 )]
 pub async fn post_unit(
+    State(state): State<RouterState>,
     Json(body): Json<UnitPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let unit = UnitEntity {
@@ -37,14 +37,10 @@ pub async fn post_unit(
     };
     println!("Inserting unit record: {:?}", unit);
 
-    let use_case = UnitUseCase::new(
-        UnitRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = UnitRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = UnitUseCase::new(repo, factory);
+
     if let Err(e) = use_case.create(unit).await {
         Err((
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -74,17 +70,14 @@ pub async fn post_unit(
     )
 )]
 pub async fn update_unit(
+    State(state): State<RouterState>,
     Path(unit): Path<String>,
     Query(query): Query<UpdateUnitQuery>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let use_case = UnitUseCase::new(
-        UnitRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = UnitRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = UnitUseCase::new(repo, factory);
+
     let _ = use_case
         .update(UnitEntity {
             unit: unit.try_into().map_err(ErrorMapper::map_to_bad_request)?,
@@ -106,16 +99,12 @@ pub async fn update_unit(
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn get_units()
--> Result<(StatusCode, Json<Vec<UnitItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let use_case = UnitUseCase::new(
-        UnitRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+pub async fn get_units(
+    State(state): State<RouterState>,
+) -> Result<(StatusCode, Json<Vec<UnitItem>>), (StatusCode, Json<ErrorResponse>)> {
+    let repo = UnitRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = UnitUseCase::new(repo, factory);
     let units = use_case
         .get_all()
         .await
@@ -142,16 +131,12 @@ pub async fn get_units()
     )
 )]
 pub async fn get_unit(
+    State(state): State<RouterState>,
     Path(unit): Path<String>,
 ) -> Result<(StatusCode, Json<UnitItem>), (StatusCode, Json<ErrorResponse>)> {
-    let use_case = UnitUseCase::new(
-        UnitRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = UnitRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = UnitUseCase::new(repo, factory);
     let found = use_case
         .get(&unit)
         .await
@@ -181,16 +166,12 @@ pub async fn get_unit(
     )
 )]
 pub async fn delete_unit(
+    State(state): State<RouterState>,
     Path(unit): Path<String>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
-    let use_case = UnitUseCase::new(
-        UnitRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = UnitRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = UnitUseCase::new(repo, factory);
     let _ = use_case
         .delete(&unit)
         .await

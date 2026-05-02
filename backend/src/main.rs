@@ -1,3 +1,4 @@
+use layer_infra_db::DatabaseConnector;
 use layer_presentation::route;
 use std::env::var;
 
@@ -11,6 +12,13 @@ async fn main() {
 
 /// Run the application server.
 async fn run() -> anyhow::Result<()> {
+    let db_connector = DatabaseConnector::new(
+        var("DB_OPERATOR_NAME")?,
+        var("DB_OPERATOR_PASSWORD")?,
+        var("DB_HOST")?,
+        var("DB_PORT")?,
+        var("DB_NAME")?,
+    );
     let bind_addr = var("BIND_ADDR")?;
     let bind_port = var("BIND_PORT")?;
     let address = format!("{bind_addr}:{bind_port}");
@@ -34,7 +42,9 @@ async fn run() -> anyhow::Result<()> {
 
     // run our app with hyper, listening globally on the port
     let listener = tokio::net::TcpListener::bind(address).await?;
-    axum::serve(listener, route(allowed_origins)?).await?;
+    let connection = db_connector.get_connection().await?;
+    let router = route(allowed_origins, connection)?;
+    axum::serve(listener, router).await?;
 
     Ok(())
 }

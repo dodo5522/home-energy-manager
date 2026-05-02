@@ -1,7 +1,6 @@
-use super::get::SubSystemItem;
-use super::post::SubSystemPostRequest;
-use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
-use axum::{Json, http::StatusCode};
+use super::{get::SubSystemItem, post::SubSystemPostRequest};
+use crate::{error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState};
+use axum::{Json, extract::State, http::StatusCode};
 use layer_domain::entity::SubSystemEntity;
 use layer_infra_db::{
     repository::sub_system::SubSystemRepository, unit_of_work::UnitOfWorkFactory,
@@ -24,6 +23,7 @@ impl ErrorMapperTrait for ErrorMapper {}
     )
 )]
 pub async fn post_sub_system(
+    State(state): State<RouterState>,
     Json(body): Json<SubSystemPostRequest>,
 ) -> Result<StatusCode, (StatusCode, Json<ErrorResponse>)> {
     let system = SubSystemEntity {
@@ -32,14 +32,9 @@ pub async fn post_sub_system(
     };
     println!("Inserting sub system record: {:?}", system);
 
-    let use_case = SubSystemUseCase::new(
-        SubSystemRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = SubSystemRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = SubSystemUseCase::new(repo, factory);
 
     if let Err(e) = use_case.create(system).await {
         Err((
@@ -64,16 +59,12 @@ pub async fn post_sub_system(
         (status = 500, description = "Internal Error", body = ErrorResponse),
     )
 )]
-pub async fn get_sub_systems()
--> Result<(StatusCode, Json<Vec<SubSystemItem>>), (StatusCode, Json<ErrorResponse>)> {
-    let use_case = SubSystemUseCase::new(
-        SubSystemRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+pub async fn get_sub_systems(
+    State(state): State<RouterState>,
+) -> Result<(StatusCode, Json<Vec<SubSystemItem>>), (StatusCode, Json<ErrorResponse>)> {
+    let repo = SubSystemRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = SubSystemUseCase::new(repo, factory);
     let systems = use_case
         .get()
         .await

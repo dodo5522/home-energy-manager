@@ -1,23 +1,20 @@
+use sea_orm::DbErr;
+
 #[derive(Debug)]
 pub enum Error {
-    EnvVar(std::env::VarError),
-    DbConnection(std::io::Error),
+    EnvIsNotPresent(String),
+    EnvIsNotUnicode(String),
+    DbFailed(DbErr),
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Error::EnvVar(err) => write!(f, "{}", err),
-            Error::DbConnection(err) => write!(f, "{}", err),
+            Error::EnvIsNotPresent(env_name) => write!(f, "{} is not present", env_name),
+            Error::EnvIsNotUnicode(env_name) => write!(f, "{} is not unicode", env_name),
+            Error::DbFailed(err) => write!(f, "DB error with {}", err),
         }
     }
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Error::EnvVar(err) => Some(err),
-            Error::DbConnection(err) => Some(err),
-        }
-    }
-}
+impl std::error::Error for Error {}

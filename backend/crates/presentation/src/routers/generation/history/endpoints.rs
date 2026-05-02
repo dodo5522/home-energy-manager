@@ -1,7 +1,13 @@
-use super::get::Response as GetResponse;
-use super::post::{HistoryPostRequest, HistoryPostResponse};
-use crate::{connectors::db, error_mapper::ErrorMapperTrait, errors::ErrorResponse};
-use axum::{Json, extract::Path, http::StatusCode};
+use super::{
+    get::Response as GetResponse,
+    post::{HistoryPostRequest, HistoryPostResponse},
+};
+use crate::{error_mapper::ErrorMapperTrait, errors::ErrorResponse, routers::RouterState};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
 use layer_domain::entity::HistoryEntity;
 use layer_infra_db::{repository::history::HistoryRepository, unit_of_work::UnitOfWorkFactory};
 use layer_use_case::history::HistoryUseCase;
@@ -22,6 +28,7 @@ impl ErrorMapperTrait for ErrorMapper {}
     )
 )]
 pub async fn post_history(
+    State(state): State<RouterState>,
     Json(body): Json<HistoryPostRequest>,
 ) -> Result<(StatusCode, Json<HistoryPostResponse>), (StatusCode, Json<ErrorResponse>)> {
     let energy = HistoryEntity {
@@ -36,14 +43,9 @@ pub async fn post_history(
     };
     println!("Inserting history record: {:?}", energy);
 
-    let use_case = HistoryUseCase::new(
-        HistoryRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = HistoryRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = HistoryUseCase::new(repo, factory);
     let created = use_case.create(energy).await;
 
     match created {
@@ -73,16 +75,12 @@ pub async fn post_history(
     )
 )]
 pub async fn get_history(
+    State(state): State<RouterState>,
     Path(id): Path<i64>,
 ) -> Result<(StatusCode, Json<GetResponse>), (StatusCode, Json<ErrorResponse>)> {
-    let use_case = HistoryUseCase::new(
-        HistoryRepository {},
-        UnitOfWorkFactory::new(
-            db::get()
-                .await
-                .map_err(ErrorMapper::map_to_internal_server_error)?,
-        ),
-    );
+    let repo = HistoryRepository {};
+    let factory = UnitOfWorkFactory::new(state.db.clone());
+    let use_case = HistoryUseCase::new(repo, factory);
     let history = use_case
         .get(id)
         .await

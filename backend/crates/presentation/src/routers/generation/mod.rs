@@ -1,13 +1,17 @@
-use axum::Router;
-use axum::routing::{delete, get, post};
+use crate::routers::RouterState;
+use axum::{
+    Router,
+    extract::State,
+    routing::{delete, get, post},
+};
 
 pub(crate) mod history;
 pub(crate) mod label;
 pub(crate) mod sub_system;
 pub(crate) mod unit;
 
-pub fn route() -> Router {
-    Router::new()
+pub fn route() -> Router<RouterState> {
+    Router::<RouterState>::new()
         .merge(Router::new().route("/history", post(history::post_history)))
         .merge(Router::new().route("/history/{id}", get(history::get_history)))
         .merge(Router::new().route("/labels", post(label::post_label).get(label::get_labels)))

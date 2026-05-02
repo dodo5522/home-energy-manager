@@ -42,7 +42,9 @@ async fn run() -> anyhow::Result<()> {
 
     // run our app with hyper, listening globally on the port
     let listener = tokio::net::TcpListener::bind(address).await?;
-    axum::serve(listener, route(allowed_origins)?).await?;
+    let connection = db_connector.get_connection().await?;
+    let router = route(allowed_origins, connection)?;
+    axum::serve(listener, router).await?;
 
     Ok(())
 }

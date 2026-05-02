@@ -1,6 +1,7 @@
-use crate::routers::{generation, health};
-use axum::Router;
+use crate::routers::{RouterState, generation, health};
+use axum::{Router, extract::State};
 use http::{HeaderValue, Method};
+use sea_orm::DatabaseConnection;
 use std::io::{Error, ErrorKind};
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
@@ -23,13 +24,14 @@ fn cors(allowed_origins: Vec<String>) -> Result<CorsLayer, Error> {
         .allow_headers(Any))
 }
 
-pub fn route(allowed_origins: Vec<String>) -> Result<Router, Error> {
-    Ok(Router::new()
+pub fn route(allowed_origins: Vec<String>, db: DatabaseConnection) -> Result<Router, Error> {
+    Ok(Router::<RouterState>::new()
         .merge(SwaggerUi::new("/docs/swagger").url("/openapi.json", ApiDoc::openapi()))
         .merge(Redoc::with_url("/docs/redoc", ApiDoc::openapi()))
         .nest("/health", health::route())
         .nest("/generation", generation::route())
-        .layer(cors(allowed_origins)?))
+        .layer(cors(allowed_origins)?)
+        .with_state(RouterState { db }))
 }
 
 #[derive(OpenApi)]
